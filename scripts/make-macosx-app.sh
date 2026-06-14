@@ -193,7 +193,7 @@ for ARCH in $SEARCH_ARCHS; do
 done
 
 # final preparations and checks before attempting to make the application bundle
-cd `dirname $0`
+cd "$(dirname "$0")/.."   # script lives in scripts/, build from repo root
 
 if [ ! -f Makefile ]; then
 	echo "$0 must be run from the quake3e build directory"

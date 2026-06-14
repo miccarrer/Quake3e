@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd `dirname $0`
+cd "$(dirname "$0")/.."   # script lives in scripts/, build from repo root
 if [ ! -f Makefile ]; then
 	echo "This script must be run from the quake3e build directory"
 	exit 1
