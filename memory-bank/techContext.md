@@ -17,7 +17,7 @@
 
 ### Build systems
 - **Makefile** (principal) — Support Linux, macOS, MinGW, Raspberry Pi, PowerPC
-- **CMakeLists.txt** (alternatif) — Maintenu mais `CNAME` encore à `quake3e`
+- **CMakeLists.txt** (alternatif) — Maintenu mais `CNAME` encore à `"quake3e"` (Phase 2 pending)
 - **MSVC** (`code/win32/msvc2017/quake3e.sln`) — Windows natif
 
 ### CI/CD
@@ -34,8 +34,8 @@ sudo apt install make gcc libcurl4-openssl-dev mesa-common-dev \
 
 ### Build minimal (Linux)
 ```bash
-make                    # Build dans build/
-make install DESTDIR=bin  # Sortie dans bin/
+make                        # Build dans build/
+make install DESTDIR=bin    # Sortie dans bin/
 ```
 
 ### Build avec Vulkan statique
@@ -45,8 +45,17 @@ make BUILD_SERVER=0 USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan
 
 ### Test rapide du build
 ```bash
+# Syntaxe bash (ne pas utiliser directement dans fish — préfixer avec bash -c '...')
 make clean && make -j$(nproc) 2>&1 | tail -5
 ```
+
+## Environnement Shell
+
+**L'utilisateur utilise `fish` comme shell par défaut.**
+- fish n'est PAS POSIX-compliant : pas de `$()`, `&&` fonctionne différemment, les globs (`*`) sont différents
+- **Préfixer les commandes complexes par `bash -c '...'`** pour garantir la compatibilité
+- Si une commande bloque, c'est probablement un problème de syntaxe fish
+- Les commandes simples (`make`, `git status`, etc.) fonctionnent sans adaptation
 
 ## Plateformes cibles
 
@@ -61,20 +70,18 @@ make clean && make -j$(nproc) 2>&1 | tail -5
 | macOS | x86_64 (Intel) | ✅ CI |
 | macOS | aarch64 (Apple Silicon) | ✅ CI |
 
-## Environnement Shell
+## Git — Remotes
 
-**L'utilisateur utilise `fish` comme shell par défaut.**
-- fish n'est PAS POSIX-compliant : pas de `$()`, `&&` fonctionne différemment, les globs (`*`) sont différents
-- **Préfixer les commandes complexes par `bash -c '...'`** pour garantir la compatibilité
-- Éviter les pipes complexes ou les sous-shells sans `bash -c`
-- Si une commande bloque, c'est probablement un problème de syntaxe fish
-- Préférer des commandes simples, une à la fois
+| Remote | URL | Rôle |
+|--------|-----|------|
+| `origin` | `git@github.com:miccarrer/Quake3e.git` | Notre repo (push/pull par défaut) |
+| `upstream` | `https://github.com/ec-/Quake3e.git` | Quake3e upstream (lecture seule — cherry-pick de fixes) |
+| `slim` | `https://github.com/omg-urt/urbanterror-slim.git` | Référence UrT features (lecture seule) |
 
-## Versionning
-- Git avec remote `origin` sur `ec-/Quake3e.git` (à changer)
-- Tags actuels : dates Quake3e (`2021-03-28`, etc.) — à remplacer par semver
-- Branche : `main`
-- Convention de commit prévue : Conventional Commits (`feat:`, `fix:`, etc.)
+- Branche principale : `main`
+- Convention de commit : Conventional Commits (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:`, `ci:`)
+- Tags actuels : dates Quake3e (`2021-03-28`, etc.) — à remplacer par `v1.0.0` (Phase 6)
+- Le repo GitHub s'appelle encore `Quake3e` — à renommer `urbanterror-optimized` (Phase 2)
 
 ## Outils de qualité (planifiés, Phase 4)
 - `.editorconfig` — Indentation cohérente

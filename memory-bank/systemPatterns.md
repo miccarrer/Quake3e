@@ -80,13 +80,26 @@ void SomeFunction( int arg ) {
 
 ### CMakeLists.txt (alternatif)
 - Moins utilisé que le Makefile, mais maintenu
-- **Attention** : `CNAME` est encore sur `"quake3e"` (à corriger en Phase 2)
+- **Attention** : `CNAME` est encore sur `"quake3e"` (à corriger en Phase 2 — Makefile déjà corrigé)
 
 ### MSVC (Windows)
 - Solution : `code/win32/msvc2017/quake3e.sln`
 - Projects : `quake3e.vcxproj`, `quake3e-ded.vcxproj`, `renderer.vcxproj`, `renderervk.vcxproj`
 
+## Cvars ajoutées (Phase 1A)
+
+### Window margins (css-like windowed mode positioning)
+- `r_windowMarginTop` / `r_windowMarginBottom` / `r_windowMarginLeft` / `r_windowMarginRight`
+- Valeur `-1` = auto (centré), `>=0` = marge fixe en pixels
+- Déclarées dans `code/client/cl_main.c`, `code/client/client.h`
+- Logique dans `code/sdl/sdl_glimp.c`
+
+### Modversion (master server)
+- `modversion` / `sv_modversion` — identifiant du moteur pour le master server UrT
+- Ajouté dans `code/qcommon/common.c`, `code/qcommon/qcommon.h`, `code/server/sv_main.c`
+
 ## CI/CD
 - `.github/workflows/build.yml` : Workflow GitHub Actions hérité de Quake3e
 - Builds : Windows (MSYS2, MSVC), Ubuntu (x86, x86_64, ARM64), macOS (x86_64, ARM64)
 - Artifacts uploadés + release auto sur tag `latest`
+- **Phase 5** : À refactorer en `ci.yml` + `release.yml`, renommer artifacts vers `urbanterror-optimized-*`

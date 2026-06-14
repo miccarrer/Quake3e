@@ -1,43 +1,38 @@
 # Active Context — Urban Terror Optimized
 
 ## Dernière mise à jour
-2026-06-14 — Session de planification et structuration
+2026-06-14 — Session de nettoyage du repo + mise à jour memory bank
 
-## Ce sur quoi on travaille MAINTENANT
+## Phase actuelle : POST-PHASE-1A — En attente de la prochaine phase
 
-### Phase actuelle : PRÉ-EXÉCUTION (roadmap créée, exécution en attente)
+La Phase 1A est terminée et mergée dans `main`. Le repo est propre. La prochaine étape à décider est Phase 1B (features UrT) ou Phase 2 (branding).
 
-La roadmap (`ROADMAP.md`) a été définie en 6 phases. L'analyse des commits de `omg-urt/urbanterror-slim` est complète (`ANALYSIS_REPORT.md`). Le Memory Bank vient d'être créé.
+## Ce qui a été fait lors de la dernière session (2026-06-14)
 
-**Prochaine étape recommandée** : Phase 1A — Intégrer les fixes sécurité prioritaires.
-
-## Ce qui a été fait lors de la dernière session
-
+### Session 1 — Planification initiale (agent précédent)
 1. ✅ Analyse complète des 66 commits de `omg-urt/urbanterror-slim`
 2. ✅ Génération de `ANALYSIS_REPORT.md` (11 fonctionnalités manquantes identifiées)
 3. ✅ Création de `ROADMAP.md` (6 phases détaillées)
-4. ✅ Configuration du Memory Bank (`.clinerules` + 6 fichiers)
+4. ✅ Configuration du Memory Bank (`.clinerules`, `.instructions.md`, `.agents/`, 6 fichiers `memory-bank/`)
 
-## Ce qui reste à faire (ordre prioritaire)
-
-1. **Phase 1A** — Fixes sécurité (JIT NaN, downloads, master server)
-2. **Phase 2** — Branding Quake3e → UrT
-3. **Phase 4** — Conventions dev (.editorconfig, .clang-format)
-4. **Phase 1B** — Features UrT (console tabs, tellme, demo)
-5. **Phase 1C** — Cvars serveur optionnelles
-6. **Phase 3** — Réorganisation docs
-7. **Phase 5** — CI/CD modernisation
-8. **Phase 6** — Nettoyage final & validation
+### Session 2 — Phase 1A + nettoyage (agents Copilot + Claude)
+1. ✅ Phase 1A implémentée et commitée (branding, build config, sécurité, window margins, modversion)
+2. ✅ CLAUDE.md créé pour Claude Code
+3. ✅ Git remotes reconfigurés : `origin` → `miccarrer/Quake3e`, `upstream` → `ec-/Quake3e`
+4. ✅ Feature branch mergée en FF dans `main`, worktree supprimé, branches nettoyées
+5. ✅ `main` pushé sur `origin`
+6. ⚠️ Phase 1B (console tabs, tellme) : WIP incomplet discardé — à recommencer proprement
 
 ## Décisions en attente / points ouverts
 
-- **dmaHD** : Intégrer ou non ? (1524 lignes de code audio, complexité moyenne)
-- **Remote Git** : Le repo `origin` pointe encore vers `ec-/Quake3e.git`. Il faudra le changer vers le nouveau repo UrT de l'utilisateur.
-- **Tags Git** : Les tags actuels (`2021-03-28`, etc.) sont ceux de Quake3e. À nettoyer.
+- **JIT NaN fix** (`56f03bca`) : `progress.md` le marque comme fait mais il n'y a aucun commit correspondant. **À vérifier** : ce fix est-il déjà présent dans notre codebase via Quake3e upstream, ou doit-on l'importer de slim ?
+- **dmaHD** : Intégrer ou non ? (1524 lignes de code audio, complexité moyenne — voir Phase 1D du ROADMAP)
+- **Renommage repo GitHub** : Le fork s'appelle encore `Quake3e` sur GitHub. À renommer en `urbanterror-optimized` (Phase 2).
+- **Tags Git** : Les tags actuels (`2021-03-28`, etc.) sont ceux de Quake3e. À remplacer par `v1.0.0` (Phase 6).
 
-## Fichiers clés modifiés récemment
+## Prochaine étape recommandée
 
-- `ROADMAP.md` — Nouveau, roadmap complète
-- `ANALYSIS_REPORT.md` — Nouveau, analyse urbanterror-slim
-- `.clinerules` — Nouveau, instructions Memory Bank
-- `memory-bank/` — Nouveau, 6 fichiers de contexte persistant
+**Option A — Phase 2 (branding)** : Courte, faible risque. Renommer CMakeLists.txt CNAME, réécrire README, nettoyer CI.
+**Option B — Phase 1B (features UrT)** : Plus long, valeur élevée. Console multi-onglets + tellme + demo UrT.
+
+Voir `ROADMAP.md` pour l'ordre d'exécution complet.
