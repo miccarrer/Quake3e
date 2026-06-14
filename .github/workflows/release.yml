@@ -1,0 +1,117 @@
+name: release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: build ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-x86_64
+            os: ubuntu-24.04
+            arch: x86_64
+          - name: linux-arm64
+            os: ubuntu-22.04-arm
+            arch: arm64
+          - name: macos-x86_64
+            os: macos-14
+            arch: x86_64
+          - name: macos-aarch64
+            os: macos-14
+            arch: aarch64
+          - name: windows-x86_64
+            os: windows-2022
+            arch: x86_64
+    steps:
+      - name: Install deps (linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get -qq update
+          sudo apt-get -y install make gcc libcurl4-openssl-dev mesa-common-dev libxxf86dga-dev libxrandr-dev libxxf86vm-dev libasound-dev libsdl2-dev
+
+      - name: Install deps (macos)
+        if: runner.os == 'macOS'
+        run: brew install coreutils sdl2
+
+      - name: Setup msys2 (windows)
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: base-devel mingw-w64-x86_64-binutils mingw-w64-x86_64-make mingw-w64-x86_64-gcc
+          path-type: minimal
+
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Build (linux)
+        if: runner.os == 'Linux'
+        run: |
+          J=$(nproc)
+          make install -j$J ARCH=${{ matrix.arch }} DESTDIR=bin USE_SDL=1 USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan CNAME=urbanterror-optimized-vulkan BUILD_SERVER=0
+          make clean ARCH=${{ matrix.arch }}
+          make install -j$J ARCH=${{ matrix.arch }} DESTDIR=bin USE_SDL=1 USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=opengl
+
+      - name: Build (macos)
+        if: runner.os == 'macOS'
+        run: |
+          J=$(sysctl -n hw.logicalcpu)
+          make install -j$J ARCH=${{ matrix.arch }} CC=clang DESTDIR=bin INSTALL=ginstall STRIP=echo USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan CNAME=urbanterror-optimized-vulkan BUILD_SERVER=0
+          make clean ARCH=${{ matrix.arch }}
+          make install -j$J ARCH=${{ matrix.arch }} CC=clang DESTDIR=bin INSTALL=ginstall STRIP=echo USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=opengl
+
+      - name: Build (windows/msys2)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: |
+          J=$(nproc)
+          make install -j$J ARCH=${{ matrix.arch }} DESTDIR=bin USE_SDL=0 USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan CNAME=urbanterror-optimized-vulkan BUILD_SERVER=0
+          make clean ARCH=${{ matrix.arch }}
+          make install -j$J ARCH=${{ matrix.arch }} DESTDIR=bin USE_SDL=0 USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=opengl
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: urbanterror-optimized-${{ matrix.name }}
+          path: bin
+          if-no-files-found: error
+          retention-days: 5
+
+  release:
+    name: package & publish
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create zip archives
+        run: |
+          mkdir -p dist
+          for d in artifacts/urbanterror-optimized-*; do
+            [ -d "$d" ] || continue
+            base=$(basename "$d")
+            (cd "$d" && zip -r "../../dist/${base}.zip" .)
+          done
+          ls -la dist
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dist/*.zip
+          body: "See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details."
+          generate_release_notes: true

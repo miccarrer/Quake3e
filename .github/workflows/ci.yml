@@ -1,0 +1,120 @@
+name: ci
+
+on:
+  pull_request:
+    paths-ignore: ['**.md', '*.txt', '.gitignore', 'docs/**']
+  push:
+    branches: [main]
+    paths-ignore: ['**.md', '*.txt', '.gitignore', 'docs/**']
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    name: clang-format (changed lines)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install clang-format
+        run: sudo apt-get -qq update && sudo apt-get -y install clang-format
+      - name: Determine base commit
+        id: base
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "sha=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT"
+          elif [ -n "${{ github.event.before }}" ] && git cat-file -e "${{ github.event.before }}^{commit}" 2>/dev/null; then
+            echo "sha=${{ github.event.before }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "sha=HEAD~1" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Check formatting of changed C lines
+        run: |
+          # Only the modified lines are checked, so legacy style is not flagged.
+          diff=$(git clang-format --diff --extensions c,h "${{ steps.base.outputs.sha }}" -- code/ || true)
+          if [ -n "$diff" ] && ! printf '%s' "$diff" | grep -qE "no modified files|did not modify"; then
+            echo "$diff"
+            echo "::error::clang-format violations on changed lines. Run: git clang-format"
+            exit 1
+          fi
+          echo "Formatting OK."
+
+  analyze:
+    name: cppcheck (informational)
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+      - run: sudo apt-get -qq update && sudo apt-get -y install cppcheck
+      - name: Run cppcheck
+        run: |
+          cppcheck --quiet --enable=warning,portability,performance \
+            --inline-suppr --suppress=missingInclude --suppress=missingIncludeSystem \
+            --error-exitcode=1 \
+            code/qcommon code/client code/server code/botlib
+
+  sanitizers:
+    name: build (ASan+UBSan)
+    runs-on: ubuntu-24.04
+    steps:
+      - run: |
+          sudo apt-get -qq update
+          sudo apt-get -y install libcurl4-openssl-dev mesa-common-dev libxxf86dga-dev libxrandr-dev libxxf86vm-dev libasound-dev libsdl2-dev
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: san-${{ github.job }}
+      - name: Build with sanitizers
+        run: |
+          make -j$(nproc) CC="ccache gcc" \
+            CFLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer" \
+            LDFLAGS="-fsanitize=address,undefined"
+
+  build:
+    name: build ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-x86_64
+            os: ubuntu-24.04
+          - name: macos-aarch64
+            os: macos-14
+          - name: windows-mingw64
+            os: windows-2022
+    steps:
+      - name: Install deps (linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get -qq update
+          sudo apt-get -y install libcurl4-openssl-dev mesa-common-dev libxxf86dga-dev libxrandr-dev libxxf86vm-dev libasound-dev libsdl2-dev
+      - name: Install deps (macos)
+        if: runner.os == 'macOS'
+        run: brew install coreutils sdl2
+      - name: Setup msys2 (windows)
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: base-devel mingw-w64-x86_64-binutils mingw-w64-x86_64-make mingw-w64-x86_64-gcc
+          path-type: minimal
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: build-${{ matrix.name }}
+      - name: Build (unix)
+        if: runner.os != 'Windows'
+        run: make -j"$(getconf _NPROCESSORS_ONLN)" CC="ccache gcc"
+      - name: Build (windows/msys2)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: make -j$(nproc)
