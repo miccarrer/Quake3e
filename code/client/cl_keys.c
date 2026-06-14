@@ -515,24 +515,28 @@ static void Message_Key( int key ) {
 	if ( key == K_ENTER || key == K_KP_ENTER )
 	{
 		if ( chatField.buffer[0] && cls.state == CA_ACTIVE ) {
-			// in tellme mode (messagemode5) keep the typed line in the input history
-			if ( chat_cmdMode ) {
-				Con_SaveField( &chatField );
-			}
-
 			if ( chat_cmdMode && chatField.buffer[0] == '/' ) {
-				// run the rest of the line as a CLIENT console command (not sent to the server)
+				// run the rest of the line as a CLIENT console command (not sent to the
+				// server); keep it verbatim in the input history
+				Con_SaveField( &chatField );
 				Cbuf_AddText( chatField.buffer + 1 );
 				Cbuf_AddText( "\n" );
-			} else if ( chat_playerNum != -1 ) {
-				Com_sprintf( buffer, sizeof( buffer ), "tell %i \"%s\"\n", chat_playerNum, chatField.buffer );
-				CL_AddReliableCommand( buffer, qfalse );
-			} else if ( chat_team ) {
-				Com_sprintf( buffer, sizeof( buffer ), "say_team \"%s\"\n", chatField.buffer );
-				CL_AddReliableCommand( buffer, qfalse );
 			} else {
-				Com_sprintf( buffer, sizeof( buffer ), "say \"%s\"\n", chatField.buffer );
+				if ( chat_playerNum != -1 )
+					Com_sprintf( buffer, sizeof( buffer ), "tell %i \"%s\"\n", chat_playerNum, chatField.buffer );
+				else if ( chat_team )
+					Com_sprintf( buffer, sizeof( buffer ), "say_team \"%s\"\n", chatField.buffer );
+				else
+					Com_sprintf( buffer, sizeof( buffer ), "say \"%s\"\n", chatField.buffer );
 				CL_AddReliableCommand( buffer, qfalse );
+
+				// in tellme mode, store a re-runnable "/tellme <content>" history entry
+				if ( chat_cmdMode ) {
+					field_t hist = chatField;
+					Com_sprintf( hist.buffer, sizeof( hist.buffer ), "/tellme %s", chatField.buffer );
+					hist.cursor = (int)strlen( hist.buffer );
+					Con_SaveField( &hist );
+				}
 			}
 		}
 		chat_cmdMode = qfalse;
