@@ -36,32 +36,33 @@ Ordre : **M0 → M1 → M2 → M3 → M4** (fondations) **→ M5** (features) **
 **Risque : faible** (aucun fichier de `code/` touché, hors `.sln`).
 
 ### Build : abandon de CMake
-- [ ] Supprimer `CMakeLists.txt` et `cmake_modules/` (build = Makefile + MSVC ;
+- [x] Supprimer `CMakeLists.txt` et `cmake_modules/` (build = Makefile + MSVC ;
       IDE via `compile_commands.json`)
-- [ ] Vérifier qu'aucune identité « quake3e » résiduelle ne subsiste côté build
-- [ ] (Optionnel) Renommer la solution MSVC `code/win32/msvc2017/quake3e.sln`
+- [x] Vérifier qu'aucune identité « quake3e » résiduelle ne subsiste côté build (CNAME OK)
+- [ ] (Optionnel) Renommer la solution MSVC `code/win32/msvc2017/quake3e.sln` — non fait
 
 ### Racine & scripts
-- [ ] Réécrire **`README.md`** pour UrT (présentation, build, features, lignée/crédits)
-- [ ] Créer **`scripts/`** : déplacer `make-macosx-app.sh`, `make-macosx-ub2.sh`
-- [ ] Créer **`LICENSE`** (alias GPL v2 pour GitHub)
+- [x] Réécrire **`README.md`** pour UrT (présentation, build, features, lignée/crédits)
+- [x] Créer **`scripts/`** : déplacer `make-macosx-app.sh`, `make-macosx-ub2.sh` (+ fix chemin)
+- [x] Créer **`LICENSE`** (GPL v2 racine, à côté de `COPYING.txt`)
 
 ### Nettoyage `docs/` (legacy Q3A)
-- [ ] Supprimer `quake3e-changes.txt`, `quake3e-FAQ.txt`, `quake3e.htm`, `quake3e.md`
-- [ ] Supprimer `README.Linux`, `README.Q3Test`, `LinuxSupport/`, `firewall/`
-- [ ] Revoir `filter.txt`, `q3url_add.cmd`, `q3url_rem.cmd` (garder/adapter ou retirer)
+- [x] Supprimer `quake3e-changes.txt`, `quake3e-FAQ.txt`, `quake3e.htm`, `quake3e.md`
+- [x] Supprimer `README.Linux`, `README.Q3Test`, `LinuxSupport/`, `firewall/`, `q3url_*.cmd`
+- [x] Revoir `filter.txt` → **conservé** (documente le cvar fonctionnel `sv_filter`)
 
 ### Restructuration `docs/`
-- [ ] Créer `docs/legal/` et `docs/analysis/`
-- [ ] `id-readme.txt` → `docs/legal/`
-- [ ] `COPYING.txt` → `docs/legal/GPL.txt` (copie racine conservée)
-- [ ] `ANALYSIS_REPORT.md` → `docs/analysis/slim-comparison.md`
-- [ ] `BUILD.md` → `docs/BUILD.md` (maj contenu UrT + bear/ccache/mold)
+- [x] Créer `docs/legal/` et `docs/analysis/`
+- [x] `id-readme.txt` → `docs/legal/`
+- [x] (déviation) Pas de `docs/legal/GPL.txt` : `LICENSE` + `COPYING.txt` en racine suffisent (évite triple copie)
+- [x] `ANALYSIS_REPORT.md` → `docs/analysis/slim-comparison.md`
+- [x] `BUILD.md` → `docs/BUILD.md` (maj UrT + section outillage bear/ccache/mold)
 
-### Identité GitHub (actions externes)
+### Identité GitHub (actions externes — à déclencher)
 - [ ] `gh repo rename urbanterror-optimized`
 - [ ] `git remote set-url origin git@github.com:miccarrer/urbanterror-optimized.git`
 - [ ] Purger les tags Quake3e ; créer le tag `v0.1.0` (base fondations)
+- [ ] `git push origin main` (les commits M1 sont locaux)
 
 ---
 

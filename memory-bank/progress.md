@@ -57,11 +57,12 @@
 
 > Contrainte : `code/` reste aligné upstream ; réorg du **non-code** uniquement (M1–M4).
 
-### M1 — Identité & hygiène fichiers ← **en cours**
-- [ ] Supprimer `CMakeLists.txt` + `cmake_modules/` (abandon CMake)
-- [ ] Réécrire `README.md` pour UrT ; créer `scripts/` ; créer `LICENSE`
-- [ ] Purger docs Q3A legacy ; restructurer `docs/` (legal/, analysis/) ; `BUILD.md` → `docs/`
-- [ ] GitHub : rename repo → `urbanterror-optimized`, maj `origin`, tags → `v0.1.0`
+### M1 — Identité & hygiène fichiers ← **en cours (local fait, GitHub en attente)**
+- [x] Supprimer `CMakeLists.txt` + `cmake_modules/` (abandon CMake)
+- [x] Réécrire `README.md` pour UrT ; créer `scripts/` (+ fix chemin) ; créer `LICENSE`
+- [x] Purger docs Q3A legacy ; restructurer `docs/` (legal/, analysis/) ; `BUILD.md` → `docs/`
+- [ ] **GitHub (externe, à déclencher)** : rename repo → `urbanterror-optimized`, maj `origin`,
+      tags Quake3e → `v0.1.0`, `git push origin main` (commits M1 locaux non poussés)
 
 ### M2 — Gouvernance & qualité
 - [ ] CONTRIBUTING.md, SECURITY.md, CHANGELOG.md, CODEOWNERS, templates `.github/`

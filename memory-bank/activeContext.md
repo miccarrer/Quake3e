@@ -3,12 +3,19 @@
 ## Dernière mise à jour
 2026-06-14 — Session 3 : fondations/outillage + réorganisation de la roadmap
 
-## Milestone actuel : M1 — Identité & hygiène des fichiers
+## Milestone actuel : M1 — Identité & hygiène des fichiers (local FAIT, GitHub en attente)
 
-Roadmap réorganisée **« fondations d'abord »** (M0–M6, voir `ROADMAP.md`). Les fondations
-(M0 : conventions, config Claude Code, outillage, vault, sécurité downloads/JIT NaN) sont
-posées. **Prochaine étape : M1** (drop CMake, README UrT, purge docs Q3A, restructure `docs/`,
-LICENSE, rename repo GitHub + tag `v0.1.0`).
+Roadmap réorganisée **« fondations d'abord »** (M0–M6, voir `ROADMAP.md`). M0 posé.
+
+**M1 — partie locale terminée et commitée** (6 commits) : abandon CMake, scripts/ (+ fix chemin),
+README UrT, LICENSE, purge docs Q3A legacy, restructuration `docs/` (legal/, analysis/, BUILD).
+
+**M1 — reste les actions GitHub externes (à déclencher par l'utilisateur)** :
+1. `gh repo rename urbanterror-optimized`
+2. `git remote set-url origin git@github.com:miccarrer/urbanterror-optimized.git`
+3. Purger les tags Quake3e, créer `v0.1.0`
+4. `git push origin main`
+Puis maj du symlink/MOC vault si le chemin du repo change (il ne change pas ici).
 
 > Contrainte structurante : `code/` reste **aligné upstream Quake3e** (cherry-pick préservé) ;
 > on ne réorganise que le **non-code** (racine, `docs/`, `scripts/`, CI).
