@@ -122,10 +122,11 @@ Ordre : **M0 → M1 → M2 → M3 → M4** (fondations) **→ M5** (features) **
 **Risque : moyen** (touche `code/` — tests requis).
 
 ### Features client
-- [x] **Tellme / self-tell** — réimplémenté proprement : `messagemode5` (interactif, cohérent
-      avec messagemode1-4) + `tellme <text>` (bind) + sauvegarde/rappel historique. Build OK,
-      commit `d158fc96`. (Le referee fix `b834398f` et la feature « /cmd dans le chat » de slim
-      ne sont **pas repris** : non nécessaires au self-tell ; à rediscuter si voulu.)
+- [x] **Tellme / messagemode5** — réimplémenté proprement (commits `d158fc96`, `450d2f23`) :
+      mode chat où le texte/`!cmd` part en self-tell serveur (commandes bot invisibles), et
+      `/cmd` exécute une **commande client** localement (`Cbuf`, pas d'envoi serveur) + historique
+      + rappel ↑/↓. Intègre l'équivalent du referee fix `b834398f` (gating via `chat_cmdMode`).
+      `tellme <text>` = variante bind (self-tell direct).
 - [ ] Console à onglets multiples (`2c70fdc0`, `03b932d1`) — `code/client/cl_console.c`
 - [ ] Demo UrT (`9579fc7e`, `ec15c2c6`) — `USE_URTDEMO` (Makefile) + `cl_main.c`, `client.h`, …
 

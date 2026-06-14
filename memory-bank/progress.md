@@ -82,9 +82,10 @@
 ### M5 — Features UrT (ex-1B/1C/1D) — EN COURS
 - [x] Cvars serveur : sv_sayprefix/sv_tellprefix, sv_nofallDamage, sv_infiniteStamina
       (portés manuellement depuis slim, build OK, commit `aeac0131`)
-- [x] Tellme / self-tell — réimplémenté propre : `messagemode5` + `tellme <text>` + historique
-      (commit `d158fc96`). Self-tell = tell privé à soi-même (commandes bot "!" invisibles).
-      Referee fix + "/cmd dans le chat" de slim NON repris (non nécessaires au self-tell).
+- [x] Tellme / messagemode5 (`d158fc96`, `450d2f23`) : mode chat ; texte/`!cmd` → self-tell
+      serveur (commandes bot invisibles) ; `/cmd` → commande CLIENT locale (`Cbuf`) + historique
+      + rappel ↑/↓. Intègre l'équivalent du referee fix (gating `chat_cmdMode`). `tellme <text>`
+      = variante bind.
 - [ ] Console à onglets (`2c70fdc0`)
 - [ ] Demo UrT (`9579fc7e`)
 - [ ] (Optionnel) dmaHD (`213e0e5d`)
