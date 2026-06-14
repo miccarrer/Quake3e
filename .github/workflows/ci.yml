@@ -34,14 +34,21 @@ jobs:
           fi
       - name: Check formatting of changed C lines
         run: |
-          # Only the modified lines are checked, so legacy style is not flagged.
-          diff=$(git clang-format --diff --extensions c,h "${{ steps.base.outputs.sha }}" -- code/ || true)
-          if [ -n "$diff" ] && ! printf '%s' "$diff" | grep -qE "no modified files|did not modify"; then
-            echo "$diff"
-            echo "::error::clang-format violations on changed lines. Run: git clang-format"
-            exit 1
+          base="${{ steps.base.outputs.sha }}"
+          # Only committed, non-vendored C files; clang-format checks just their changed lines.
+          files=$(git diff --name-only --diff-filter=ACM "$base" HEAD -- \
+            'code/*.c' 'code/*.h' \
+            ':!code/libcurl/*' ':!code/libjpeg/*' ':!code/libogg/*' \
+            ':!code/libvorbis/*' ':!code/libsdl/*' ':!code/renderercommon/vulkan/*')
+          if [ -z "$files" ]; then echo "No changed C files."; exit 0; fi
+          echo "Checking:"; echo "$files"
+          diff=$(git clang-format --diff "$base" -- $files || true)
+          if [ -z "$diff" ] || printf '%s' "$diff" | grep -qE "no modified files|did not modify"; then
+            echo "Formatting OK."; exit 0
           fi
-          echo "Formatting OK."
+          echo "$diff"
+          echo "::error::clang-format violations on changed lines. Run: git clang-format"
+          exit 1
 
   analyze:
     name: cppcheck (informational)
@@ -72,7 +79,9 @@ jobs:
           key: san-${{ github.job }}
       - name: Build with sanitizers
         run: |
-          make -j$(nproc) CC="ccache gcc" \
+          # 'debug' target propagates both CFLAGS and LDFLAGS to the recursive make
+          # (the 'release' target does not propagate LDFLAGS), so -fsanitize links correctly.
+          make debug -j$(nproc) CC="ccache gcc" \
             CFLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer" \
             LDFLAGS="-fsanitize=address,undefined"
 

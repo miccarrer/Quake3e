@@ -1,19 +1,29 @@
-# Urban Terror Optimized — normalisation des fins de ligne
-* text=auto eol=lf
+# Urban Terror Optimized — line-ending normalization
+# Default: auto-detect. We do NOT force eol globally to avoid churning vendored
+# third-party files committed with CRLF (and diverging from upstream).
+* text=auto
 
-# Sources C/C++ : LF
+# Our own sources: normalize to LF
 *.c    text eol=lf
 *.h    text eol=lf
-
-# Scripts
 *.sh   text eol=lf
+*.yml  text eol=lf
+*.md   text eol=lf
 
-# Fichiers Windows : CRLF
+# Windows-only files: CRLF
 *.bat  text eol=crlf
 *.sln  text eol=crlf
 *.vcxproj text eol=crlf
 
-# Binaires (pas de conversion)
+# Vendored / third-party: leave bytes untouched (preserve upstream)
+code/libcurl/*               -text
+code/libjpeg/*               -text
+code/libogg/*                -text
+code/libvorbis/*             -text
+code/libsdl/*                -text
+code/renderercommon/vulkan/* -text
+
+# Binaries (no conversion)
 *.pk3  binary
 *.png  binary
 *.jpg  binary
