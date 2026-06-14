@@ -50,10 +50,10 @@ USE_VULKAN_API   = 1
 USE_RENDERER_DLOPEN = 1
 
 # valid options: opengl, vulkan, opengl2
-RENDERER_DEFAULT = opengl
+RENDERER_DEFAULT = vulkan
 
-CNAME            = quake3e
-DNAME            = quake3e.ded
+CNAME            = urbanterror-optimized
+DNAME            = urbanterror-optimized.ded
 
 RENDERER_PREFIX  = $(CNAME)
 
