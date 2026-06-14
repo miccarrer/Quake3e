@@ -513,20 +513,32 @@ static void Message_Key( int key ) {
 	if ( key == K_ENTER || key == K_KP_ENTER )
 	{
 		if ( chatField.buffer[0] && cls.state == CA_ACTIVE ) {
-			if (chat_playerNum != -1 )
-
+			if ( chat_playerNum != -1 )
 				Com_sprintf( buffer, sizeof( buffer ), "tell %i \"%s\"\n", chat_playerNum, chatField.buffer );
-
-			else if (chat_team)
-
+			else if ( chat_team )
 				Com_sprintf( buffer, sizeof( buffer ), "say_team \"%s\"\n", chatField.buffer );
 			else
 				Com_sprintf( buffer, sizeof( buffer ), "say \"%s\"\n", chatField.buffer );
 
 			CL_AddReliableCommand( buffer, qfalse );
+
+			// record private messages to ourselves (messagemode5 / tellme) in the input history
+			if ( chat_playerNum >= 0 && chat_playerNum == clc.clientNum ) {
+				Con_SaveField( &chatField );
+			}
 		}
 		Key_SetCatcher( Key_GetCatcher( ) & ~KEYCATCH_MESSAGE );
 		Field_Clear( &chatField );
+		return;
+	}
+
+	if ( key == K_UPARROW ) {
+		Con_HistoryGetPrev( &chatField );
+		return;
+	}
+
+	if ( key == K_DOWNARROW ) {
+		Con_HistoryGetNext( &chatField );
 		return;
 	}
 

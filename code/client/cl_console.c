@@ -162,6 +162,53 @@ static void Con_MessageMode4_f( void ) {
 	Key_SetCatcher( Key_GetCatcher() ^ KEYCATCH_MESSAGE );
 }
 
+/*
+================
+Con_MessageMode5_f
+
+Private message to ourselves ("tell me"): the text is sent to the server as a
+tell to our own client, so it stays invisible to other players while still
+being parsed server-side (e.g. mod/bot "!" commands).
+================
+*/
+static void Con_MessageMode5_f( void ) {
+	chat_playerNum = clc.clientNum;
+	if ( chat_playerNum < 0 || chat_playerNum >= MAX_CLIENTS ) {
+		chat_playerNum = -1;
+		return;
+	}
+	chat_team = qfalse;
+	Field_Clear( &chatField );
+	chatField.widthInChars = 30;
+	Key_SetCatcher( Key_GetCatcher() ^ KEYCATCH_MESSAGE );
+}
+
+/*
+================
+Con_Tellme_f
+
+"tellme <text>": send <text> as a private tell to ourselves (see messagemode5),
+for use in binds/scripts. The text is also recorded in the input history.
+================
+*/
+static void Con_Tellme_f( void ) {
+	char buffer[MAX_STRING_CHARS];
+	field_t hist;
+
+	if ( Cmd_Argc() < 2 ) {
+		Com_Printf( "usage: tellme <text>\n" );
+		return;
+	}
+	if ( clc.clientNum < 0 || clc.clientNum >= MAX_CLIENTS ) {
+		return;
+	}
+	Com_sprintf( buffer, sizeof( buffer ), "tell %i \"%s\"\n", clc.clientNum, Cmd_ArgsFrom( 1 ) );
+	CL_AddReliableCommand( buffer, qfalse );
+
+	Field_Clear( &hist );
+	Q_strncpyz( hist.buffer, Cmd_ArgsFrom( 1 ), sizeof( hist.buffer ) );
+	Con_SaveField( &hist );
+}
 
 /*
 ================
@@ -414,6 +461,8 @@ void Con_Init( void )
 	Cmd_AddCommand( "messagemode2", Con_MessageMode2_f );
 	Cmd_AddCommand( "messagemode3", Con_MessageMode3_f );
 	Cmd_AddCommand( "messagemode4", Con_MessageMode4_f );
+	Cmd_AddCommand( "messagemode5", Con_MessageMode5_f );
+	Cmd_AddCommand( "tellme", Con_Tellme_f );
 }
 
 
@@ -431,6 +480,8 @@ void Con_Shutdown( void )
 	Cmd_RemoveCommand( "messagemode2" );
 	Cmd_RemoveCommand( "messagemode3" );
 	Cmd_RemoveCommand( "messagemode4" );
+	Cmd_RemoveCommand( "messagemode5" );
+	Cmd_RemoveCommand( "tellme" );
 }
 
 
