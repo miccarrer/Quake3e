@@ -73,10 +73,11 @@
 - [x] ci : matrix Makefile (Linux/macOS/Win-MSYS2) + clang-format (lignes modifiées) + cppcheck
       (informatif) + ASan/UBSan + cache ccache
 - [x] release : build multi-plateforme, artifacts `urbanterror-optimized-*`, release auto
-- [ ] À surveiller : 1er run de `ci.yml` (clang-tidy en CI reporté ; MSVC couvert par release.yml)
+- [x] Validé : `ci.yml` vert sur run réel (clang-format + builds Linux/macOS/Win + ASan/UBSan)
 
-### M4 — Docs de référence
-- [ ] `docs/CVARS.md`, `docs/CREDITS.md`, `docs/legal/third-party.txt`, `docs/urt-features.md`
+### M4 — Docs de référence ✅ FAIT (2026-06-14)
+- [x] `docs/CVARS.md`, `docs/CREDITS.md`, `docs/legal/third-party.txt`, `docs/urt-features.md`
+      + section Documentation dans README
 
 ### M5 — Features UrT (ex-1B/1C/1D)
 - [ ] Console à onglets (`2c70fdc0`), Tellme (`d4f12aa7`+), Demo UrT (`9579fc7e`)

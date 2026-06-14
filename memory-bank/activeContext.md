@@ -3,11 +3,16 @@
 ## Dernière mise à jour
 2026-06-14 — Session 3 : fondations/outillage + réorganisation de la roadmap
 
-## Milestone actuel : M4 — Docs de référence (M1, M2, M3 écrits)
+## Milestone actuel : M5 — Features UrT (M0–M4 terminés)
 
-M1, M2 **terminés**. M3 (CI/CD) **écrit et poussé** — `ci.yml` + `release.yml` remplacent
-`build.yml`. **À valider par le premier run CI réel** (déclenché par le push). Prochaine étape :
-**M4 — Docs de référence** (CVARS.md, CREDITS.md, third-party.txt, urt-features.md).
+**Fondations terminées (M0–M4).** M3 (CI/CD) **validé vert** sur run réel : `ci.yml`
+(clang-format lignes modifiées, builds Linux/macOS/Win-MSYS2, ASan/UBSan, cppcheck informatif,
+cache ccache) + `release.yml`. M4 (docs de référence) fait.
+
+**Prochaine étape : M5 — Intégration features UrT** (touche `code/`, tests requis) :
+console à onglets, tellme, demo UrT, cvars serveur (sayprefix/nofalldamage/infiniteStamina/
+referee), dmaHD optionnel. Voir `docs/analysis/slim-comparison.md` pour les commits sources.
+C'est le premier milestone qui modifie `code/` → garder l'alignement upstream en tête.
 
 ---
 

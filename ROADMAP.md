@@ -97,20 +97,22 @@ Ordre : **M0 → M1 → M2 → M3 → M4** (fondations) **→ M5** (features) **
   - [x] **Caching** (ccache via hendrikmuhs/ccache-action)
 - [x] `release.yml` : build multi-plateforme, artifacts `urbanterror-optimized-*`, release auto
 - [x] Retirer le `build.yml` legacy (jobs ARM morts, msys32, artifacts `quake3e-*`)
-- [ ] **Validation** : observer le premier run de `ci.yml` (clang-tidy en CI : reporté, lancé
-      manuellement via `.clang-tidy` pour l'instant ; MSVC en CI : couvert par `release.yml`)
+- [x] **Validation** : `ci.yml` vérifié vert sur run réel (clang-format, builds Linux/macOS/
+      Windows-MSYS2, ASan/UBSan ✓ ; cppcheck informatif). clang-tidy : reporté (manuel via
+      `.clang-tidy`) ; MSVC : couvert par `release.yml`
 
 ---
 
 ## M4 — Documentation de référence
 
 *Documenter ce qui existe avant d'ajouter du neuf.*
-**Risque : faible.**
+**Risque : faible.** ✅ **Terminé (2026-06-14).**
 
-- [ ] `docs/CVARS.md` — cvars UrT (dont window margins, modversion déjà ajoutées)
-- [ ] `docs/CREDITS.md` — id Software / ioquake3 / ec-Quake3e / omg-urt
-- [ ] `docs/legal/third-party.txt` — libs vendored (libcurl, libjpeg, libogg, libvorbis, SDL2)
-- [ ] `docs/urt-features.md` — (s'enrichit au fil de M5)
+- [x] `docs/CVARS.md` — cvars UrT (window margins, modversion, sv_filter)
+- [x] `docs/CREDITS.md` — id Software / ioquake3 / ec-Quake3e / omg-urt
+- [x] `docs/legal/third-party.txt` — libs vendored (libcurl, libjpeg, libogg, libvorbis, SDL2)
+- [x] `docs/urt-features.md` — features actuelles + planifiées (s'enrichit au fil de M5)
+- [x] Section Documentation ajoutée au `README.md`
 
 ---
 

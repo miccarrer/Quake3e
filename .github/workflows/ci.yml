@@ -59,7 +59,7 @@ jobs:
       - run: sudo apt-get -qq update && sudo apt-get -y install cppcheck
       - name: Run cppcheck
         run: |
-          cppcheck --quiet --enable=warning,portability,performance \
+          cppcheck --quiet -j"$(nproc)" --enable=warning,portability,performance \
             --inline-suppr --suppress=missingInclude --suppress=missingIncludeSystem \
             --error-exitcode=1 \
             code/qcommon code/client code/server code/botlib
