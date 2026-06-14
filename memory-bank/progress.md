@@ -86,14 +86,21 @@
       serveur (commandes bot invisibles) ; `/cmd` → commande CLIENT locale (`Cbuf`) + historique
       + rappel ↑/↓. Intègre l'équivalent du referee fix (gating `chat_cmdMode`). `tellme <text>`
       = variante bind.
-- [ ] Console à onglets (`2c70fdc0`)
-- [ ] Demo UrT (`9579fc7e`)
+- [ ] **DIFFÉRÉ** Console à onglets (`855ae13b`) — réécriture structurelle (console unique →
+      `consoles[]` + onglets). Cherry-pick non viable (10 conflits, non guardé, intestable à l'aveugle).
+      À refaire en réimplémentation fraîche + tests en jeu.
+- [ ] **DIFFÉRÉ** Demo UrT (`9579fc7e`) — port invasif (218 lignes `USE_URT_DEMO`), cherry-pick =
+      5 conflits (notre demo-parsing modernisé par Quake3e). Faisable (guardé) mais nécessite
+      tests `.urtdemo`/`.dm_` en jeu.
 - [ ] (Optionnel) dmaHD (`213e0e5d`)
 
-> ⚠️ **Hook clang-format défectueux** : `.claude/settings.json` lance `clang-format -i`
-> (fichier ENTIER) sur chaque Edit de `.c`/`.h` → reformate tout le legacy. Contournement :
-> éditer le code via Bash/python (hors hook) puis `git clang-format -f` (lignes modifiées).
-> **À corriger par l'utilisateur** : remplacer la commande du hook par `git clang-format -f -- "$f"`.
+**Leçon M5** : les features petites/isolées (cvars serveur, tellme) se portent proprement
+(port manuel + build + test ciblé). Les features structurelles/invasives (refactor console,
+pipeline demo) sur le code divergé de slim nécessitent une réimplémentation fraîche + tests
+runtime itératifs — non adaptées au port à l'aveugle. Différées jusqu'à dispo de tests en continu.
+
+> ✅ **Hook clang-format corrigé** par l'utilisateur (`git clang-format -f`, via `bash -c`) :
+> formate uniquement les lignes modifiées. L'outil Edit est de nouveau utilisable sur `.c`/`.h`.
 
 ### M6 — Release v1.0.0
 - [ ] Build test complet via CI ; tag `v1.0.0` ; CHANGELOG

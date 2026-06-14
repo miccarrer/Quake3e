@@ -3,16 +3,25 @@
 ## Dernière mise à jour
 2026-06-14 — Session 3 : fondations/outillage + réorganisation de la roadmap
 
-## Milestone actuel : M5 — Features UrT (M0–M4 terminés)
+## Milestone actuel : M5 — Features UrT (PARTIEL ; fondations M0–M4 terminées)
 
-**Fondations terminées (M0–M4).** M3 (CI/CD) **validé vert** sur run réel : `ci.yml`
-(clang-format lignes modifiées, builds Linux/macOS/Win-MSYS2, ASan/UBSan, cppcheck informatif,
-cache ccache) + `release.yml`. M4 (docs de référence) fait.
+**Fondations terminées (M0–M4)** : CI vert, docs, identité, conventions, outillage.
 
-**Prochaine étape : M5 — Intégration features UrT** (touche `code/`, tests requis) :
-console à onglets, tellme, demo UrT, cvars serveur (sayprefix/nofalldamage/infiniteStamina/
-referee), dmaHD optionnel. Voir `docs/analysis/slim-comparison.md` pour les commits sources.
-C'est le premier milestone qui modifie `code/` → garder l'alignement upstream en tête.
+**M5 — fait** :
+- Cvars serveur (`sv_sayprefix`/`sv_tellprefix`, `sv_nofallDamage`, `sv_infiniteStamina`) —
+  poussé (`aeac0131`).
+- Tellme / `messagemode5` — `/cmd` = commande client + self-tell `!`/texte + historique +
+  rappel ↑/↓. **5 commits locaux non poussés** (`d158fc96`→`18b869d0`) — push bloqué par deny-rule.
+
+**M5 — DIFFÉRÉ** (gros ports structurels/invasifs sur code slim divergé, intestables à l'aveugle,
+nécessitent réimpl fraîche + tests runtime itératifs) :
+- Console à onglets (`855ae13b`) — cherry-pick non viable (10 conflits, non guardé).
+- Demo UrT (`9579fc7e`) — cherry-pick = 5 conflits (demo-parsing modernisé) ; guardé, faisable
+  avec tests `.urtdemo`/`.dm_`.
+- dmaHD (`213e0e5d`) — optionnel, décision en attente.
+
+**État** : consolidation. À faire par l'utilisateur : `git push origin main` (5 commits tellme).
+Reprise des features différées quand le test en jeu en continu est possible.
 
 ---
 
