@@ -26,17 +26,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // q_shared.h -- included first by ALL program modules.
 // A user mod should never modify this file
 
-#define Q3_VERSION            "Q3 1.32e"
+#define Q3_VERSION            "UrT-Optimized-Q3e"
 #ifndef SVN_VERSION
   #define SVN_VERSION Q3_VERSION
 #endif
-#define CLIENT_WINDOW_TITLE   "Quake 3: Arena"
-#define CONSOLE_WINDOW_TITLE  "Quake 3 Console"
+#define CLIENT_WINDOW_TITLE   "Urban Terror Optimized"
+#define CONSOLE_WINDOW_TITLE  "UrT Console"
 // 1.32 released 7-10-2002
 
-//#define DEFAULT_GAME			"edawn"
+#define DEFAULT_GAME			"q3ut4"
 
-#define BASEGAME				"baseq3"
+#define BASEGAME				"q3ut4"
 #define BASEDEMO				"demoq3"
 #define BASETA					"missionpack"
 #define STEAMPATH_NAME			"Quake 3 Arena"
