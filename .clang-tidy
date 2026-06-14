@@ -1,0 +1,22 @@
+# Urban Terror Optimized — static analysis config (clang-tidy)
+# Conservative set for a large legacy C engine: focus on real bugs / portability,
+# avoid noisy stylistic checks (naming, magic numbers) that would flood the codebase.
+# Run: clang-tidy -p compile_commands.json <file.c>   (generate with: bear -- make)
+---
+Checks: >
+  clang-analyzer-*,
+  bugprone-*,
+  performance-*,
+  portability-*,
+  misc-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  -bugprone-reserved-identifier,
+  -bugprone-assignment-in-if-condition,
+  -misc-no-recursion,
+  -misc-include-cleaner,
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling
+
+WarningsAsErrors: ''
+HeaderFilterRegex: '^code/(qcommon|client|server|renderer.*|sdl|botlib)/'
+FormatStyle: file
