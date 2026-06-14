@@ -1,4 +1,8 @@
-## Build Instructions
+# Build Instructions — Urban Terror Optimized
+
+The build system is the **Makefile** (Linux/macOS/MinGW/Raspberry Pi/PowerPC) plus the
+**MSVC** solution for native Windows. This repository contains the engine only — copy the
+resulting binaries into your Urban Terror installation (game data lives in `q3ut4/`).
 
 ### windows/msvc
 
@@ -55,23 +59,13 @@ Copy the resulting binaries from created `build` directory or use command:
 
 ### Arch Linux
 
-The package `quake3e-git` can either be installed through your favourite AUR helper, or manually using these commands:
+Install the build dependencies, then build from source:
 
-Download the snapshot from AUR:
+* `sudo pacman -S --needed base-devel sdl2 curl`
+* `make`
 
-`curl -O https://aur.archlinux.org/cgit/aur.git/snapshot/quake3e-git.tar.gz`
-
-Extract the snapshot:
-
-`tar xfz quake3e-git.tar.gz`
-
-Enter the extracted directory:
-
-`cd quake3e-git`
-
-Build and install `quake3e-git`:
-
-`makepkg -risc`
+Copy the resulting binaries from the created `build` directory or use
+`make install DESTDIR=<path_to_game_files>`.
 
 ---
 
@@ -146,3 +140,20 @@ Several Makefile options are available for linux/mingw/macos builds:
 Example:
 
 `make BUILD_SERVER=0 USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan` - which means do not build dedicated binary, build client with single static vulkan renderer
+
+---
+
+### Developer tooling (optional, recommended)
+
+These speed up edit/build/iterate loops and enable IDE/LSP integration:
+
+* **ccache** — caches object files for near-instant rebuilds. Once installed it is picked up
+  automatically by most setups, or wrap: `CC="ccache gcc" make`.
+* **mold** — fast linker: `make LDFLAGS=-fuse-ld=mold`.
+* **bear** — generates `compile_commands.json` for clangd/clang-tidy and editor navigation:
+  `bear -- make`. (The file is git-ignored.)
+* **clang-format** — code style is enforced by `.clang-format`; format a file with
+  `clang-format -i <file>`.
+* **cppcheck** / **clang-tidy** — static analysis.
+
+On Arch: `sudo pacman -S --needed bear ccache mold cppcheck clang`.

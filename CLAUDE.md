@@ -122,4 +122,4 @@ See `ROADMAP.md` for full details. Milestone order — **foundations before feat
 **Constraint**: `code/` stays aligned with `ec-/Quake3e` upstream (preserve cherry-pick);
 reorganize **non-code only** (root, `docs/`, `scripts/`, CI).
 
-`ANALYSIS_REPORT.md` documents which commits from `omg-urt/urbanterror-slim` are missing and need integration.
+`docs/analysis/slim-comparison.md` documents which commits from `omg-urt/urbanterror-slim` are missing and need integration.
