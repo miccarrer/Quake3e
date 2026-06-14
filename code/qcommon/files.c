@@ -4326,6 +4326,20 @@ qboolean FS_idPak(const char *pak, const char *base, int numPaks)
 
 /*
 ================
+FS_GamePak
+Checks if a pak is part of the UrT or base game
+================
+*/
+qboolean FS_GamePak(char *pak)
+{
+	return Q_stristr(pak, "q3ut4/zUrT") == pak
+		|| Q_stristr(pak, "baseq3/pak") == pak
+		|| Q_stristr(pak, BASETA "/pak") == pak;
+}
+
+
+/*
+================
 FS_InvalidGameDir
 return true if path is a reference to current directory or directory traversal
 or a sub-directory
@@ -4386,6 +4400,11 @@ qboolean FS_ComparePaks( char *neededpaks, int len, qboolean dlstring ) {
 
 		// never autodownload any of the id paks
 		if ( FS_idPak(fs_serverReferencedPakNames[i], BASEGAME, NUM_ID_PAKS) || FS_idPak(fs_serverReferencedPakNames[i], BASETA, NUM_TA_PAKS) ) {
+			continue;
+		}
+
+		// never autodownload any of the urbanterror paks
+		if ( FS_GamePak(fs_serverReferencedPakNames[i]) ) {
 			continue;
 		}
 
