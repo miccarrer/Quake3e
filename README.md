@@ -48,6 +48,12 @@ make install DESTDIR=<path_to_urt_install>
 Full instructions for all platforms (Windows MSVC/MSYS2/MinGW, macOS, Raspberry Pi, PowerPC)
 and developer tooling are in **[docs/BUILD.md](docs/BUILD.md)**.
 
+## Documentation
+
+- [Build instructions](docs/BUILD.md) · [Cvars](docs/CVARS.md) · [UrT features](docs/urt-features.md)
+- [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) · [Security policy](SECURITY.md)
+- [Credits](docs/CREDITS.md) · [Roadmap](ROADMAP.md)
+
 ## Lineage & credits
 
 ```

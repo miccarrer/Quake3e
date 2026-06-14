@@ -1,0 +1,24 @@
+Third-party libraries bundled in this repository
+================================================
+
+The following libraries are vendored under code/ and retain their own licenses.
+They are the property of their respective authors.
+
+- libcurl        (code/libcurl/)    — HTTP downloads
+                 License: curl license (MIT/X derivate). https://curl.se/docs/copyright.html
+
+- libjpeg        (code/libjpeg/)     — JPEG encode/decode (screenshots)
+                 License: IJG (Independent JPEG Group) license.
+
+- libogg         (code/libogg/)      — Ogg container
+                 License: BSD-3-Clause (Xiph.Org).
+
+- libvorbis      (code/libvorbis/)   — Vorbis audio codec
+                 License: BSD-3-Clause (Xiph.Org).
+
+- SDL2           (code/libsdl/, Windows bundle) — video/audio/input backend
+                 License: zlib license.
+
+The Urban Terror Optimized engine itself is licensed under the GNU GPL v2
+(see ../../LICENSE / ../../COPYING.txt). Where the GPL and a bundled library's
+license interact, the bundled library is used under its own permissive terms.
