@@ -58,11 +58,12 @@ Ordre : **M0 → M1 → M2 → M3 → M4** (fondations) **→ M5** (features) **
 - [x] `ANALYSIS_REPORT.md` → `docs/analysis/slim-comparison.md`
 - [x] `BUILD.md` → `docs/BUILD.md` (maj UrT + section outillage bear/ccache/mold)
 
-### Identité GitHub (actions externes — à déclencher)
-- [ ] `gh repo rename urbanterror-optimized`
-- [ ] `git remote set-url origin git@github.com:miccarrer/urbanterror-optimized.git`
-- [ ] Purger les tags Quake3e ; créer le tag `v0.1.0` (base fondations)
-- [ ] `git push origin main` (les commits M1 sont locaux)
+### Identité GitHub (actions externes)
+- [x] `gh repo rename urbanterror-optimized` (repo renommé)
+- [x] `git remote set-url origin …/urbanterror-optimized.git`
+- [x] Créer le tag `v0.1.0` (base fondations) — poussé
+- [x] `git push origin main` + `git push origin v0.1.0`
+- [ ] (Optionnel, cosmétique) Purger les 26 anciens tags Quake3e (local + remote)
 
 ---
 
