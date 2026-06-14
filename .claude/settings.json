@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(make:*)", "Bash(bear:*)", "Bash(ccache:*)", "Bash(cmake:*)",
+      "Bash(git:*)", "Bash(gh:*)", "Bash(rg:*)", "Bash(fd:*)",
+      "Bash(clang-format:*)", "Bash(clang-tidy:*)", "Bash(cppcheck:*)", "Bash(ctags:*)"
+    ],
+    "deny": ["Bash(git push:*)"]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command",
+            "command": "f=$(jq -r '.tool_input.file_path // empty'); case \"$f\" in *.c|*.h) command -v clang-format >/dev/null 2>&1 && clang-format -i \"$f\" ;; esac" }
+        ]
+      }
+    ]
+  }
+}

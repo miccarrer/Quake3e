@@ -22,7 +22,7 @@ memory-bank/techContext.md      # Build system & dependencies
 
 Update `memory-bank/activeContext.md` and `memory-bank/progress.md` at significant milestones and at end of session.
 
-The `.agents/memory-bank-manager.md` agent describes the full memory bank workflow.
+The `.claude/agents/memory-bank-manager.md` subagent automates the full memory bank workflow.
 
 ## Build Commands
 
