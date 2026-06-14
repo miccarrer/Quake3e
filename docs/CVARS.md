@@ -31,7 +31,17 @@ a value `>= 0` is a fixed margin in pixels from the corresponding screen edge.
 |------|:-----:|-------------|
 | `sv_filter` | server | Path to a userinfo filter file. Format documented in [filter.txt](filter.txt). |
 
+## Server — optional gameplay / messages
+
+All default to the prior behaviour (prefixes) or off; `CVAR_ARCHIVE_ND`.
+
+| Cvar | Default | Description |
+|------|:-------:|-------------|
+| `sv_sayprefix` | `console: ` | Prefix prepended to server `say` console messages |
+| `sv_tellprefix` | `^6console: ` | Prefix prepended to server `tell` console messages |
+| `sv_nofallDamage` | `0` | Disable fall damage server-side (no lemmings) |
+| `sv_infiniteStamina` | `0` | Give players infinite stamina (Urban Terror) |
+
 ---
 
-*Server cvars planned for M5 (sv_sayprefix, sv_nofalldamage, sv_infiniteStamina, …) will be
-documented here as they are integrated. See [ROADMAP.md](../ROADMAP.md).*
+*Remaining M5 features (tabbed console, tellme, UrT demo) are tracked in [ROADMAP.md](../ROADMAP.md).*

@@ -79,10 +79,19 @@
 - [x] `docs/CVARS.md`, `docs/CREDITS.md`, `docs/legal/third-party.txt`, `docs/urt-features.md`
       + section Documentation dans README
 
-### M5 — Features UrT (ex-1B/1C/1D)
-- [ ] Console à onglets (`2c70fdc0`), Tellme (`d4f12aa7`+), Demo UrT (`9579fc7e`)
-- [ ] Cvars serveur : sv_sayprefix (`dd52e95f`), sv_nofalldamage (`be301ebf`), sv_infiniteStamina (`bbb587d4`), referee fix (`b834398f`)
+### M5 — Features UrT (ex-1B/1C/1D) — EN COURS
+- [x] Cvars serveur : sv_sayprefix/sv_tellprefix, sv_nofallDamage, sv_infiniteStamina
+      (portés manuellement depuis slim, build OK, commit `aeac0131`)
+- [ ] Referee fix (`b834398f`) — dépend de `tell_me` → après tellme
+- [ ] Tellme (`d4f12aa7`+)
+- [ ] Console à onglets (`2c70fdc0`)
+- [ ] Demo UrT (`9579fc7e`)
 - [ ] (Optionnel) dmaHD (`213e0e5d`)
+
+> ⚠️ **Hook clang-format défectueux** : `.claude/settings.json` lance `clang-format -i`
+> (fichier ENTIER) sur chaque Edit de `.c`/`.h` → reformate tout le legacy. Contournement :
+> éditer le code via Bash/python (hors hook) puis `git clang-format -f` (lignes modifiées).
+> **À corriger par l'utilisateur** : remplacer la commande du hook par `git clang-format -f -- "$f"`.
 
 ### M6 — Release v1.0.0
 - [ ] Build test complet via CI ; tag `v1.0.0` ; CHANGELOG

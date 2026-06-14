@@ -127,10 +127,10 @@ Ordre : **M0 → M1 → M2 → M3 → M4** (fondations) **→ M5** (features) **
 - [ ] Demo UrT (`9579fc7e`, `ec15c2c6`) — `USE_URTDEMO` (Makefile) + `cl_main.c`, `client.h`, …
 
 ### Cvars serveur optionnelles
-- [ ] `sv_sayprefix` / `sv_tellprefix` (`dd52e95f`)
-- [ ] `sv_nofalldamage` (`be301ebf`)
-- [ ] `sv_infiniteStamina` (`bbb587d4`)
-- [ ] Referee fix (`b834398f`) — `code/client/cl_keys.c`
+- [x] `sv_sayprefix` / `sv_tellprefix` (`dd52e95f`) — porté manuellement, build OK
+- [x] `sv_nofallDamage` (`be301ebf`) — porté manuellement, build OK
+- [x] `sv_infiniteStamina` (`bbb587d4`) — porté manuellement, build OK
+- [ ] Referee fix (`b834398f`) — `code/client/cl_keys.c` — **dépend de `tell_me` (tellme)** → après tellme
 
 ### Optionnel
 - [ ] dmaHD (`213e0e5d`, ~1524 lignes) — décision en attente
