@@ -74,7 +74,7 @@ make clean && make -j$(nproc) 2>&1 | tail -5
 
 | Remote | URL (fetch) | Push | Rôle |
 |--------|-----|------|------|
-| `origin` | `git@github.com:miccarrer/Quake3e.git` | activé | Notre repo (push/pull par défaut) |
+| `origin` | `git@github.com:miccarrer/urbanterror-optimized.git` | activé | Notre repo (push/pull par défaut) |
 | `upstream` | `https://github.com/ec-/Quake3e.git` | `DISABLE` | Quake3e upstream (lecture seule — cherry-pick de fixes) |
 | `slim` | `https://github.com/omg-urt/urbanterror-slim.git` | `DISABLE` | Référence UrT features (lecture seule) |
 

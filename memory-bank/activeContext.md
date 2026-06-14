@@ -10,12 +10,12 @@ Roadmap réorganisée **« fondations d'abord »** (M0–M6, voir `ROADMAP.md`).
 **M1 — partie locale terminée et commitée** (6 commits) : abandon CMake, scripts/ (+ fix chemin),
 README UrT, LICENSE, purge docs Q3A legacy, restructuration `docs/` (legal/, analysis/, BUILD).
 
-**M1 — reste les actions GitHub externes (à déclencher par l'utilisateur)** :
-1. `gh repo rename urbanterror-optimized`
-2. `git remote set-url origin git@github.com:miccarrer/urbanterror-optimized.git`
-3. Purger les tags Quake3e, créer `v0.1.0`
-4. `git push origin main`
-Puis maj du symlink/MOC vault si le chemin du repo change (il ne change pas ici).
+**M1 — actions GitHub** :
+1. ✅ `gh repo rename urbanterror-optimized` (fait — repo public renommé)
+2. ✅ `git remote set-url origin …/urbanterror-optimized.git` (fait)
+3. ✅ Tag `v0.1.0` créé (local). Purge des 26 anciens tags Quake3e : **non faite** (cosmétique, à décider)
+4. ⏳ `git push origin main` + `git push origin v0.1.0` : **à faire** (push protégé par deny-rule → confirmation)
+Le chemin local du repo ne change pas → symlink/MOC vault inchangés.
 
 > Contrainte structurante : `code/` reste **aligné upstream Quake3e** (cherry-pick préservé) ;
 > on ne réorganise que le **non-code** (racine, `docs/`, `scripts/`, CI).
