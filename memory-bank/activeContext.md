@@ -1,9 +1,35 @@
 # Active Context — Urban Terror Optimized
 
 ## Dernière mise à jour
-2026-06-14 — Session 3 : fondations/outillage + réorganisation de la roadmap
+2026-06-15 — Session 4 : audit des fondations + ouverture du milestone M7 (modernisation)
 
-## Milestone actuel : M5 — Features UrT (PARTIEL ; fondations M0–M4 terminées)
+## Milestone actuel : M7 — Qualité & durcissement (modernisation 2026)
+
+**Déclencheur** : audit demandé par l'utilisateur (2026-06-15) — « vérifier que les fondations
+sont bonnes » + lister ce qui peut être modernisé. Verdict : fondations M0–M4 solides.
+Rapport complet dans **`AUDIT.md`** (racine), suivi dans `ROADMAP.md` (M7).
+
+**Branche de travail** : `feature/modernization-m7`.
+
+**M7 — 4 phases livrées (7 commits, branche non poussée)** :
+1. ✅ Tests & fuzzing — `tests/` (Unity 8 tests q_math + libFuzzer Info_*), jobs CI. Vérifié.
+2. ✅ Durcissement CI — CodeQL, dependabot, SHA-pinning toutes actions, provenance. (MSVC différé)
+3. ✅ Build & versioning — `git describe`→`SVN_VERSION` (vérifié binaire), `-std=gnu99` (build OK).
+   (durcissement PIE/RELRO différé — test JIT runtime requis)
+4. ✅ Env & polish — devcontainer/Dockerfile, CODE_OF_CONDUCT, badges README, ARCHITECTURE.md.
+
+**Restant (validation externe, hors environnement)** : job MSVC + rebrand `.sln` (Windows natif),
+flags durcissement PIE/RELRO (lancer le JIT VM en jeu), optionnels (codecov, FUNDING). + `git push`.
+
+**Notes techniques clés** (cf. AUDIT.md) :
+- `git describe` retombe sur le tag legacy `latest` → filtrer `--match 'v[0-9]*'` (= `v0.1.0-…`),
+  non-destructif, pas besoin de supprimer le tag.
+- `-std=gnu99` (pas `c99`) : le code utilise extensions GNU.
+- `tests/` hors-arbre → zéro impact sur l'alignement upstream / cherry-pick.
+
+---
+
+## (clos) Milestone précédent : M5 — Features UrT (PARTIEL ; fondations M0–M4 terminées)
 
 **Fondations terminées (M0–M4)** : CI vert, docs, identité, conventions, outillage.
 

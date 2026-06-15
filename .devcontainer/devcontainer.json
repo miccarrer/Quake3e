@@ -1,0 +1,21 @@
+{
+	"name": "urbanterror-optimized",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"context": ".."
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"llvm-vs-code-extensions.vscode-clangd",
+				"ms-vscode.makefile-tools"
+			],
+			"settings": {
+				"editor.insertSpaces": false,
+				"editor.detectIndentation": false
+			}
+		}
+	},
+	"postCreateCommand": "make -j\"$(nproc)\" && make -C tests unit",
+	"remoteUser": "ubuntu"
+}

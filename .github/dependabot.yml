@@ -1,0 +1,15 @@
+version: 2
+updates:
+  # Keep GitHub Actions pinned-by-SHA references up to date. Dependabot rewrites
+  # the SHA and the trailing `# vX.Y.Z` comment together.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "dependencies"
+      - "ci"

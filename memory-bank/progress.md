@@ -2,7 +2,8 @@
 
 ## État global du projet
 
-**Milestone actuel** : **M1 — Identité & hygiène des fichiers**. Fondations (M0) posées. Roadmap réorganisée « fondations d'abord » (voir `ROADMAP.md`).
+**Milestone actuel** : **M7 — Qualité & durcissement** (audit 2026-06-15, voir `AUDIT.md`).
+Fondations M0–M4 terminées ; M5 partiel (cvars + tellme faits, console/demo différés) ; M6 (release) en attente.
 
 ---
 
@@ -105,6 +106,18 @@ runtime itératifs — non adaptées au port à l'aveugle. Différées jusqu'à 
 ### M6 — Release v1.0.0
 - [ ] Build test complet via CI ; tag `v1.0.0` ; CHANGELOG
 
+### M7 — Qualité & durcissement (modernisation 2026) ← **QUASI FAIT** (2026-06-15)
+> Issu de l'audit `AUDIT.md`. Branche `feature/modernization-m7` (7 commits, non poussés).
+- [x] **Phase 1** Tests & fuzzing — `tests/unit/` (Unity, 8 tests q_math vérifiés) +
+      `tests/fuzz/fuzz_info` (libFuzzer Info_*) + `support/stubs.c`, jobs CI `unit`/`fuzz-smoke`
+- [x] **Phase 2** Durcissement CI — CodeQL, dependabot, **SHA-pinning** de toutes les actions,
+      build provenance (release.yml). DIFFÉRÉ : job MSVC (non validable hors Windows)
+- [x] **Phase 3** Build & versioning — `git describe --match 'v[0-9]*'`→`SVN_VERSION` (vérifié
+      binaire), `-std=gnu99` (build clean validé). DIFFÉRÉ : durcissement PIE/RELRO (test JIT runtime)
+- [x] **Phase 4** Env & polish — devcontainer/Dockerfile, CODE_OF_CONDUCT, badges README, ARCHITECTURE.md
+- [ ] **Restant (validation externe)** : job MSVC + rebrand `.sln` (Windows), flags PIE/RELRO
+      (runtime JIT), optionnels (codecov, FUNDING, capture README). + `git push` de la branche
+
 ---
 
 ## 📊 Métriques
@@ -115,5 +128,5 @@ runtime itératifs — non adaptées au port à l'aveugle. Différées jusqu'à 
 | Fonctionnalités déjà intégrées | 13 |
 | Fonctionnalités intégrées en M0 | 4 (sécurité + modversion + window margins) |
 | Fonctionnalités manquantes restantes | ~7 (M5) |
-| Milestones roadmap | 7 (M0–M6) |
-| Milestones terminés | 1 (M0 — fondations) |
+| Milestones roadmap | 8 (M0–M7) |
+| Milestones terminés | 5 (M0–M4 fondations) ; M5 partiel |

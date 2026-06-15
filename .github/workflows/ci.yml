@@ -17,7 +17,7 @@ jobs:
     name: clang-format (changed lines)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 0
       - name: Install clang-format
@@ -53,15 +53,17 @@ jobs:
   analyze:
     name: cppcheck (informational)
     runs-on: ubuntu-24.04
-    continue-on-error: true
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - run: sudo apt-get -qq update && sudo apt-get -y install cppcheck
       - name: Run cppcheck
+        # Informational only: findings are surfaced in the log but do not fail the
+        # job. The legacy base has known intentional findings (e.g. Com_Crash_f's
+        # deliberate null write to test the crash handler), so --error-exitcode is
+        # intentionally omitted rather than suppressing each one in upstream code.
         run: |
           cppcheck --quiet -j"$(nproc)" --enable=warning,portability,performance \
             --inline-suppr --suppress=missingInclude --suppress=missingIncludeSystem \
-            --error-exitcode=1 \
             code/qcommon code/client code/server code/botlib
 
   sanitizers:
@@ -71,10 +73,10 @@ jobs:
       - run: |
           sudo apt-get -qq update
           sudo apt-get -y install libcurl4-openssl-dev mesa-common-dev libxxf86dga-dev libxrandr-dev libxxf86vm-dev libasound-dev libsdl2-dev
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           submodules: recursive
-      - uses: hendrikmuhs/ccache-action@v1.2
+      - uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2
         with:
           key: san-${{ github.job }}
       - name: Build with sanitizers
@@ -84,6 +86,26 @@ jobs:
           make debug -j$(nproc) CC="ccache gcc" USE_RENDERER_DLOPEN=0 \
             EXTRA_CFLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer" \
             EXTRA_LDFLAGS="-fsanitize=address,undefined"
+
+  unit:
+    name: unit tests (ASan+UBSan)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - name: Run unit tests
+        run: make -C tests unit
+
+  fuzz-smoke:
+    name: fuzz smoke (libFuzzer)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - name: Install clang
+        run: sudo apt-get -qq update && sudo apt-get -y install clang
+      - name: Build fuzz targets
+        run: make -C tests fuzz CC=clang
+      - name: Short fuzz run on seed corpus
+        run: ./tests/build/fuzz_info -runs=200000 -max_total_time=60 tests/fuzz/corpus/info
 
   build:
     name: build ${{ matrix.name }}
@@ -109,15 +131,15 @@ jobs:
         run: brew install coreutils sdl2
       - name: Setup msys2 (windows)
         if: runner.os == 'Windows'
-        uses: msys2/setup-msys2@v2
+        uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884 # v2
         with:
           msystem: MINGW64
           install: base-devel mingw-w64-x86_64-binutils mingw-w64-x86_64-make mingw-w64-x86_64-gcc
           path-type: minimal
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           submodules: recursive
-      - uses: hendrikmuhs/ccache-action@v1.2
+      - uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2
         with:
           key: build-${{ matrix.name }}
       - name: Build (unix)

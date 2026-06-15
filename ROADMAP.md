@@ -158,6 +158,44 @@ Ordre : **M0 → M1 → M2 → M3 → M4** (fondations) **→ M5** (features) **
 
 ---
 
+## M7 — Qualité & durcissement (modernisation 2026)
+
+*Issu de l'audit du 2026-06-15 (voir [`AUDIT.md`](AUDIT.md)). Combler les lacunes vers un
+projet « le plus moderne possible » : tests, sécurité CI, build, env reproductible.*
+**Risque : moyen** (Phases 1–2 hors `code/` ; Phase 3 touche le Makefile → tests build requis).
+
+### Phase 1 — Tests & fuzzing 🔴 ✅ (2026-06-15)
+- [x] `tests/unit/` : harness **Unity** vendored + `tests/Makefile` séparé (ASan/UBSan défaut)
+- [x] Tests unitaires `q_math.c` (8 tests, vérifiés) ; `support/stubs.c` pour `q_shared.c`
+- [x] `tests/fuzz/fuzz_info` : **libFuzzer** sur `Info_*` (q_shared.c) + corpus seed
+- [x] CI : jobs `unit` + `fuzz-smoke` dans `ci.yml`
+- [ ] *(extension future)* `cvar.c`/`md4`/`md5`, fuzz `COM_Parse`/`msg.c`
+
+### Phase 2 — Durcissement CI / sécurité 🟠 ✅ (2026-06-15, sauf MSVC)
+- [x] `.github/workflows/codeql.yml` (c-cpp, PR + hebdo)
+- [x] `.github/dependabot.yml` (github-actions)
+- [x] Épinglage des actions sur **SHA** (`ci.yml` + `release.yml` + `codeql.yml`)
+- [x] Build provenance (`actions/attest-build-provenance`) dans `release.yml`
+- [ ] **DIFFÉRÉ** Job **MSVC** — non validable hors Windows (à coupler au rebrand `.sln`)
+- [ ] *(optionnel)* coverage codecov
+
+### Phase 3 — Build & versioning 🟠 ✅ (2026-06-15, durcissement différé)
+- [x] Versioning dynamique `git describe --match 'v[0-9]*'` → `-DSVN_VERSION` (hook
+      `q_shared.h:30-32`, **0 modif code**) — vérifié dans le binaire
+- [x] `-std=gnu99` explicite — build complet clean validé
+- [ ] **DIFFÉRÉ** Durcissement `-fstack-protector-strong`/`_FORTIFY_SOURCE`/RELRO/PIE —
+      nécessite test runtime JIT VM sous PIE (W^X)
+- [ ] *(optionnel)* rebranding `quake3e.sln` → `urbanterror-optimized.*`
+
+### Phase 4 — Env reproductible & polish 🟡/🟢 ✅ (2026-06-15)
+- [x] `.devcontainer/` + `Dockerfile` (toolchain one-command, miroir CI)
+- [x] `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1)
+- [x] README : badges + liens CoC/ARCHITECTURE/AUDIT
+- [x] `ARCHITECTURE.md` (promotion `memory-bank/systemPatterns.md`)
+- [ ] *(optionnel)* `.github/FUNDING.yml` ; capture/GIF README
+
+---
+
 ## 📋 Ordre d'exécution
 
 | # | Milestone | Durée | Risque |
@@ -169,6 +207,7 @@ Ordre : **M0 → M1 → M2 → M3 → M4** (fondations) **→ M5** (features) **
 | 4 | M4 — Docs de référence | Court | Faible |
 | 5 | M5 — Features UrT | Long | Moyen |
 | 6 | M6 — Release v1.0.0 | Court | Faible |
+| 7 | M7 — Qualité & durcissement | Long | Moyen |
 
 ---
 
