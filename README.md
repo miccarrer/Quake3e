@@ -1,5 +1,11 @@
 # Urban Terror Optimized
 
+[![CI](https://github.com/miccarrer/urbanterror-optimized/actions/workflows/ci.yml/badge.svg)](https://github.com/miccarrer/urbanterror-optimized/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/miccarrer/urbanterror-optimized/actions/workflows/codeql.yml/badge.svg)](https://github.com/miccarrer/urbanterror-optimized/actions/workflows/codeql.yml)
+[![Release](https://img.shields.io/github/v/release/miccarrer/urbanterror-optimized?sort=semver)](https://github.com/miccarrer/urbanterror-optimized/releases)
+[![License: GPL v2](https://img.shields.io/badge/License-GPL_v2-blue.svg)](LICENSE)
+![Platforms](https://img.shields.io/badge/platforms-Linux%20%7C%20Windows%20%7C%20macOS%20%7C%20Raspberry%20Pi-lightgrey)
+
 A modern, fast and secure **client + server engine for Urban Terror 4.x**, based on
 [ec-/Quake3e](https://github.com/ec-/Quake3e) (itself a fork of
 [ioquake3](https://github.com/ioquake/ioq3) / id Software's Quake III Arena).
@@ -50,9 +56,9 @@ and developer tooling are in **[docs/BUILD.md](docs/BUILD.md)**.
 
 ## Documentation
 
-- [Build instructions](docs/BUILD.md) · [Cvars](docs/CVARS.md) · [UrT features](docs/urt-features.md)
-- [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) · [Security policy](SECURITY.md)
-- [Credits](docs/CREDITS.md) · [Roadmap](ROADMAP.md)
+- [Build instructions](docs/BUILD.md) · [Architecture](ARCHITECTURE.md) · [Cvars](docs/CVARS.md) · [UrT features](docs/urt-features.md)
+- [Contributing](CONTRIBUTING.md) · [Code of Conduct](CODE_OF_CONDUCT.md) · [Changelog](CHANGELOG.md) · [Security policy](SECURITY.md)
+- [Credits](docs/CREDITS.md) · [Roadmap](ROADMAP.md) · [Audit & modernization](AUDIT.md)
 
 ## Lineage & credits
 
