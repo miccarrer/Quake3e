@@ -11,10 +11,12 @@ Après la publication de **v0.2.0** (release dlopen, cf. plus bas), série de du
 - **CodeQL** : config dédiée `.github/codeql/codeql-config.yml` — suite **`security-extended`**
   (au lieu de `security-and-quality`) + **exclusion du code vendored** → alertes **~1279 → ~172**.
   Triage documenté dans **`docs/security-triage.md`** (politique : pas de réécriture de masse du
-  code upstream ; on classe Fix / Won't-fix / Backlog). **8 alertes dismissées** (vérifiées FP :
-  localtime/ctime, path-injection `FS_BuildOSPath`, 2 strcpy pak sized-to-source). ~164 en backlog
-  (patterns upstream, surtout FP/entrées de confiance ; à trier au fil de l'eau, priorité aux
-  chemins atteignables depuis input non fiable : netcode, paks téléchargés).
+  code upstream ; on classe Fix / Won't-fix / Backlog). **24 alertes dismissées** (vérifiées FP).
+  **Surface réseau entièrement examinée** (`msg.c`/`net_chan.c`/`net_ip.c`/`sv_*`/`cl_main`) :
+  **aucun vrai bug** (16 `uncontrolled-arithmetic` toutes FP — valeurs bornées, timing interne, ou
+  l'arithmétique = le garde-fou ; fragment reassembly `net_chan.c` correctement borné). Le netcode
+  ioquake3/Quake3e tient. ~148 backlog = code **non-réseau** (audio snd_mix, render tr_*, + vendored
+  libjpeg/libvorbis que `paths-ignore` n'exclut pas pour le C compilé — limite à revoir).
 - **Dependabot** : alertes + security updates **activées** ; toutes les PR de bump mergées ;
   **grouping** configuré (PR #11) → bumps d'actions futurs en une seule PR (déjà effectif, PR #12).
 - **cppcheck** : caché (`--cppcheck-build-dir` + actions/cache) → ~7 min → secondes.
