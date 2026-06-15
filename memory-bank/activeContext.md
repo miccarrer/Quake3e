@@ -36,8 +36,9 @@ cppcheck rendu informationnel). Branche `feature/modernization-m7`.
 3. ✅ Build & versioning — `git describe`→`SVN_VERSION` (vérifié binaire), `-std=gnu99`.
 4. ✅ Env & polish — devcontainer/Dockerfile, CODE_OF_CONDUCT, badges README, ARCHITECTURE.md.
 
-**Différé M7 (validation externe requise)** : job MSVC + rebrand `.sln` (Windows natif),
-flags durcissement PIE/RELRO (test JIT VM en jeu), optionnels (codecov, FUNDING).
+**Durcissement Linux FAIT (2026-06-15)** : stack-protector-strong + full RELRO + FORTIFY (PIE
+déjà actif → JIT non impacté ; vérifié build/readelf/init serveur ; reste valider JIT en jeu, faible risque).
+**Différé M7 (validation externe)** : job MSVC + rebrand `.sln` (Windows natif) ; optionnels (codecov, FUNDING).
 
 ## Prochaine cible recommandée : M6 — Release
 

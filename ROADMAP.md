@@ -190,8 +190,10 @@ projet « le plus moderne possible » : tests, sécurité CI, build, env reprodu
 - [x] Versioning dynamique `git describe --match 'v[0-9]*'` → `-DSVN_VERSION` (hook
       `q_shared.h:30-32`, **0 modif code**) — vérifié dans le binaire
 - [x] `-std=gnu99` explicite — build complet clean validé
-- [ ] **DIFFÉRÉ** Durcissement `-fstack-protector-strong`/`_FORTIFY_SOURCE`/RELRO/PIE —
-      nécessite test runtime JIT VM sous PIE (W^X)
+- [x] Durcissement Linux : `-fstack-protector-strong`, full RELRO (`-z relro,-z now`),
+      `-D_FORTIFY_SOURCE=2` (release). PIE déjà actif (défaut toolchain) → JIT non impacté.
+      Vérifié : build clean + readelf (RELRO/FORTIFY/canary) + init serveur OK. Reste : valider
+      le JIT en jeu (mod QVM) — faible risque vu que PIE était déjà actif.
 - [ ] *(optionnel)* rebranding `quake3e.sln` → `urbanterror-optimized.*`
 
 ### Phase 4 — Env reproductible & polish 🟡/🟢 ✅ (2026-06-15)

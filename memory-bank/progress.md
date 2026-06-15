@@ -123,11 +123,12 @@ runtime itératifs — non adaptées au port à l'aveugle. Différées jusqu'à 
       `tests/fuzz/fuzz_info` (libFuzzer Info_*) + `support/stubs.c`, jobs CI `unit`/`fuzz-smoke`
 - [x] **Phase 2** Durcissement CI — CodeQL, dependabot, **SHA-pinning** de toutes les actions,
       build provenance (release.yml). DIFFÉRÉ : job MSVC (non validable hors Windows)
-- [x] **Phase 3** Build & versioning — `git describe --match 'v[0-9]*'`→`SVN_VERSION` (vérifié
-      binaire), `-std=gnu99` (build clean validé). DIFFÉRÉ : durcissement PIE/RELRO (test JIT runtime)
+- [x] **Phase 3** Build & versioning — `git describe`→`SVN_VERSION`, `-std=gnu99`, **durcissement
+      Linux** (stack-protector-strong + full RELRO + FORTIFY ; PIE déjà actif → JIT non impacté ;
+      vérifié build+readelf+init serveur)
 - [x] **Phase 4** Env & polish — devcontainer/Dockerfile, CODE_OF_CONDUCT, badges README, ARCHITECTURE.md
-- [ ] **Restant (validation externe)** : job MSVC + rebrand `.sln` (Windows), flags PIE/RELRO
-      (runtime JIT), optionnels (codecov, FUNDING, capture README). + `git push` de la branche
+- [ ] **Restant (validation externe)** : job MSVC + rebrand `.sln` (Windows) ; valider JIT en jeu
+      sous durcissement (faible risque) ; optionnels (codecov, FUNDING, capture README)
 
 ---
 
