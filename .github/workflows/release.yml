@@ -56,30 +56,27 @@ jobs:
         with:
           submodules: recursive
 
+      # Single client with dynamically loaded renderers (USE_RENDERER_DLOPEN=1, the
+      # engine default): ships one binary that starts in Vulkan and can fall back to
+      # OpenGL at runtime (\cl_renderer opengl; \vid_restart) — no separate binary.
       - name: Build (linux)
         if: runner.os == 'Linux'
         run: |
           J=$(nproc)
-          make install -j$J ARCH=${{ matrix.arch }} DESTDIR=bin USE_SDL=1 USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan CNAME=urbanterror-optimized-vulkan BUILD_SERVER=0
-          make clean ARCH=${{ matrix.arch }}
-          make install -j$J ARCH=${{ matrix.arch }} DESTDIR=bin USE_SDL=1 USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=opengl
+          make install -j$J ARCH=${{ matrix.arch }} DESTDIR=bin USE_SDL=1 RENDERER_DEFAULT=vulkan
 
       - name: Build (macos)
         if: runner.os == 'macOS'
         run: |
           J=$(sysctl -n hw.logicalcpu)
-          make install -j$J ARCH=${{ matrix.arch }} CC=clang DESTDIR=bin INSTALL=ginstall STRIP=echo USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan CNAME=urbanterror-optimized-vulkan BUILD_SERVER=0
-          make clean ARCH=${{ matrix.arch }}
-          make install -j$J ARCH=${{ matrix.arch }} CC=clang DESTDIR=bin INSTALL=ginstall STRIP=echo USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=opengl
+          make install -j$J ARCH=${{ matrix.arch }} CC=clang DESTDIR=bin INSTALL=ginstall STRIP=echo RENDERER_DEFAULT=vulkan
 
       - name: Build (windows/msys2)
         if: runner.os == 'Windows'
         shell: msys2 {0}
         run: |
           J=$(nproc)
-          make install -j$J ARCH=${{ matrix.arch }} DESTDIR=bin USE_SDL=0 USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan CNAME=urbanterror-optimized-vulkan BUILD_SERVER=0
-          make clean ARCH=${{ matrix.arch }}
-          make install -j$J ARCH=${{ matrix.arch }} DESTDIR=bin USE_SDL=0 USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=opengl
+          make install -j$J ARCH=${{ matrix.arch }} DESTDIR=bin USE_SDL=0 RENDERER_DEFAULT=vulkan
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -106,6 +103,7 @@ jobs:
           for d in artifacts/urbanterror-optimized-*; do
             [ -d "$d" ] || continue
             base=$(basename "$d")
+            cp .github/release/BINARIES.txt "$d/BINARIES.txt"
             (cd "$d" && zip -r "../../dist/${base}.zip" .)
           done
           ls -la dist

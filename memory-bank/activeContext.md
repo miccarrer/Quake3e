@@ -26,11 +26,17 @@ clos : cvars + tellme faits ; **referee fix absorbé par tellme** (réconcilié 
 console-à-onglets / demo / dmaHD restent différés (réimpl + tests en jeu) et **ne bloquent pas**
 une release.
 
-**Décisions prises (2026-06-15)** : prochaine release = **v0.2.0** (modernisation ; v1.0.0
-réservé à l'après console-onglets + demo) ; **dmaHD hors périmètre** (différé). CHANGELOG daté
-`[0.2.0] - 2026-06-15`. **Reste à faire (action utilisateur, push m'est refusé)** :
-`git tag v0.2.0 && git push origin v0.2.0` → déclenche `release.yml` (build multi-plateforme +
-provenance Sigstore). Après tag, la bannière de version affichera `v0.2.0` (versioning git-describe).
+**Décisions prises (2026-06-15)** : release = **v0.2.0** (modernisation ; v1.0.0 réservé à
+l'après console-onglets + demo) ; **dmaHD hors périmètre**. **v0.2.0 TAGUÉE & PUBLIÉE** (release
+GitHub générée, provenance Sigstore OK).
+
+**Correctif packaging release (branche `fix/release-dlopen-packaging`, non mergée)** : la
+release v0.2.0 livrait 2 clients **statiques** (`USE_RENDERER_DLOPEN=0`) au nommage trompeur
+(le binaire « par défaut » sans suffixe était l'OpenGL, le Vulkan recommandé était suffixé).
+→ Basculé sur le mode **dlopen** (défaut moteur) : **un seul client** qui démarre en Vulkan et
+bascule OpenGL à chaud (`\cl_renderer opengl` + `\vid_restart`), + les modules `_vulkan`/`_opengl`,
++ `BINARIES.txt` dans l'archive. `release.yml` simplifié (1 `make install`/plateforme). Vérifié
+localement. **S'applique à la prochaine release** (v0.2.0 publiée reste inchangée). README : section « Running » ajoutée.
 
 **Notes techniques clés** (cf. AUDIT.md) :
 - `git describe` retombe sur le tag legacy `latest` → filtrer `--match 'v[0-9]*'` (= `v0.1.0-…`),

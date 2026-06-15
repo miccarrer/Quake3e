@@ -54,6 +54,18 @@ make install DESTDIR=<path_to_urt_install>
 Full instructions for all platforms (Windows MSVC/MSYS2/MinGW, macOS, Raspberry Pi, PowerPC)
 and developer tooling are in **[docs/BUILD.md](docs/BUILD.md)**.
 
+## Running
+
+Release archives ship a single client (`urbanterror-optimized`) plus a dedicated server
+(`urbanterror-optimized.ded`). The client uses **dynamically loaded renderers** and starts with
+**Vulkan by default**. If Vulkan does not start on your system, switch to OpenGL from the
+in-game console without any other download:
+
+```
+\cl_renderer opengl
+\vid_restart
+```
+
 ## Documentation
 
 - [Build instructions](docs/BUILD.md) · [Architecture](ARCHITECTURE.md) · [Cvars](docs/CVARS.md) · [UrT features](docs/urt-features.md)
