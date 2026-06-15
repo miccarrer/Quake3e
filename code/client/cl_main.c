@@ -3604,6 +3604,30 @@ static const char *const identity_cvars[] = {
     NULL };
 
 /*
+CL_ValidIdentityName
+
+An identity name is turned into a file path (identities/<name>.cfg), so it must
+be a single safe path component. Allow only [A-Za-z0-9 _-] — this rejects path
+separators and '.', so "..", absolute paths and hidden files cannot be formed.
+*/
+static qboolean CL_ValidIdentityName( const char *name ) {
+	int i;
+
+	if ( !name || !name[0] || strlen( name ) >= 64 ) {
+		return qfalse;
+	}
+
+	for ( i = 0; name[i]; i++ ) {
+		const char c = name[i];
+		if ( !( ( c >= 'a' && c <= 'z' ) || ( c >= 'A' && c <= 'Z' ) ||
+		        ( c >= '0' && c <= '9' ) || c == '_' || c == '-' || c == ' ' ) ) {
+			return qfalse;
+		}
+	}
+	return qtrue;
+}
+
+/*
 CL_SaveIdentity_f
 
 saveidentity <name>
@@ -3621,8 +3645,12 @@ static void CL_SaveIdentity_f( void ) {
 		return;
 	}
 
-	Com_sprintf( filename, sizeof( filename ), "identities/%s", Cmd_Argv( 1 ) );
-	COM_DefaultExtension( filename, sizeof( filename ), ".cfg" );
+	if ( !CL_ValidIdentityName( Cmd_Argv( 1 ) ) ) {
+		Com_Printf( S_COLOR_YELLOW "Invalid identity name (letters, digits, spaces, '-' or '_').\n" );
+		return;
+	}
+
+	Com_sprintf( filename, sizeof( filename ), "identities/%s.cfg", Cmd_Argv( 1 ) );
 
 	f = FS_FOpenFileWrite( filename );
 	if ( f == FS_INVALID_HANDLE ) {
@@ -3666,10 +3694,12 @@ static void CL_LoadIdentity_f( void ) {
 		return;
 	}
 
-	Q_strncpyz( name, Cmd_Argv( 1 ), sizeof( name ) );
-	// sanitize: strip path separators and extensions from user input
-	COM_StripExtension( name, name, sizeof( name ) );
+	if ( !CL_ValidIdentityName( Cmd_Argv( 1 ) ) ) {
+		Com_Printf( S_COLOR_YELLOW "Invalid identity name (letters, digits, spaces, '-' or '_').\n" );
+		return;
+	}
 
+	Q_strncpyz( name, Cmd_Argv( 1 ), sizeof( name ) );
 	Com_sprintf( filename, sizeof( filename ), "identities/%s.cfg", name );
 
 	if ( !FS_FileExists( filename ) ) {
@@ -4342,8 +4372,8 @@ void CL_Init( void ) {
 	Cmd_SetCommandCompletionFunc( "loadidentity", CL_CompleteIdentityName );
 	Cmd_AddCommand( "listidentities", CL_ListIdentities_f );
 
-	// auto-load saved identity at startup
-	if ( cl_identity->string[0] ) {
+	// auto-load saved identity at startup (validate first — it is exec'd)
+	if ( cl_identity->string[0] && CL_ValidIdentityName( cl_identity->string ) ) {
 		char idFile[MAX_OSPATH];
 		Com_sprintf( idFile, sizeof( idFile ), "identities/%s.cfg", cl_identity->string );
 		if ( FS_FileExists( idFile ) ) {
