@@ -9,4 +9,5 @@ cmake-*
 # Outillage dev local (non versionné)
 compile_commands.json
 .cache/
+.cppcheck-build/
 .claude/settings.local.json

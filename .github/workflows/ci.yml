@@ -56,14 +56,28 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - run: sudo apt-get -qq update && sudo apt-get -y install cppcheck
+      - name: Cache cppcheck analysis
+        # Persists cppcheck's per-file analysis across runs; unchanged files are
+        # not re-analyzed. Keyed per-commit, restoring the most recent prior cache.
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: .cppcheck-build
+          key: cppcheck-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            cppcheck-${{ runner.os }}-
       - name: Run cppcheck
         # Informational only: findings are surfaced in the log but do not fail the
         # job. The legacy base has known intentional findings (e.g. Com_Crash_f's
         # deliberate null write to test the crash handler), so --error-exitcode is
         # intentionally omitted rather than suppressing each one in upstream code.
+        # --cppcheck-build-dir caches analysis (warm runs drop from ~7 min to
+        # seconds). --max-configs is NOT lowered: without the build's platform
+        # defines, a single config hits q_platform.h's #error and analyses nothing.
         run: |
+          mkdir -p .cppcheck-build
           cppcheck --quiet -j"$(nproc)" --enable=warning,portability,performance \
             --inline-suppr --suppress=missingInclude --suppress=missingIncludeSystem \
+            --cppcheck-build-dir=.cppcheck-build \
             code/qcommon code/client code/server code/botlib
 
   sanitizers:
