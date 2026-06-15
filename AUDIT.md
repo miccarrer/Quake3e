@@ -61,8 +61,8 @@ modifs `code/` minimisées.
 - [x] Versioning dynamique : `git describe --match 'v[0-9]*'` → `-DSVN_VERSION` (Makefile ;
       hook `code/qcommon/q_shared.h:30-32`, **0 modif code**) — vérifié dans le binaire ✓
 - [x] `-std=gnu99` explicite — **build complet clean validé** ✓
-- [ ] **DIFFÉRÉ** Durcissement `-fstack-protector-strong`/`-D_FORTIFY_SOURCE=2`/RELRO/PIE —
-      nécessite un **test runtime du JIT VM sous PIE** (W^X) impossible sans assets de jeu
+- [x] Durcissement Linux : `-fstack-protector-strong` + full RELRO + `-D_FORTIFY_SOURCE=2`.
+      PIE déjà actif (toolchain) → JIT non impacté. Vérifié build + readelf + init serveur ✓
 - [ ] *(optionnel)* rebranding `quake3e.sln` → `urbanterror-optimized.*`
 
 ### Phase 4 — Env reproductible & polish 🟡/🟢 ✅ FAIT
