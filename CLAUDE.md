@@ -13,16 +13,16 @@ Lineage: `id Software Q3A → ioquake3 → ec-/Quake3e → [omg-urt/urbanterror-
 At the start of any non-trivial task, read the memory bank files to understand current state:
 
 ```
-memory-bank/projectbrief.md     # Project scope & goals
-memory-bank/activeContext.md    # Current task / in-progress work
-memory-bank/progress.md         # Roadmap progress & blockers
-memory-bank/systemPatterns.md   # Architecture & code conventions
-memory-bank/techContext.md      # Build system & dependencies
+.context/projectbrief.md     # Project scope & goals
+.context/activeContext.md    # Current task / in-progress work
+.context/progress.md         # Roadmap progress & blockers
+.context/systemPatterns.md   # Architecture & code conventions
+.context/techContext.md      # Build system & dependencies
 ```
 
-Update `memory-bank/activeContext.md` and `memory-bank/progress.md` at significant milestones and at end of session.
+Update `.context/activeContext.md` and `.context/progress.md` at significant milestones and at end of session.
 
-The `.claude/agents/memory-bank-manager.md` subagent automates the full memory bank workflow.
+The `.claude/agents/context-manager.md` subagent automates the full memory bank workflow.
 
 ## Build Commands
 

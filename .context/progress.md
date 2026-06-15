@@ -35,11 +35,11 @@ Branche `feature/identity-switching`. Fondations M0–M4 terminées ; M5 partiel
 ### M0 — Fondations / outillage (2026-06-14, session 3)
 - [x] Conventions dev : `.clang-format`, `.editorconfig`, `.gitattributes`, `.gitignore`
 - [x] Config Claude Code : `.claude/settings.json` (allowlist + hook clang-format),
-      `.claude/agents/memory-bank-manager.md` ; dédup `.clinerules`/`.instructions.md`
+      `.claude/agents/context-manager.md` ; dédup `.clinerules`/`.instructions.md`
 - [x] Outillage Arch : bear, ccache, mold, cppcheck installés ; `compile_commands.json` généré
 - [x] MCP Context7 ajouté (scope user) ; remotes `slim`/`upstream` push `DISABLE`
 - [x] Base de connaissances : vault Obsidian (PARA-lite, `github.com/miccarrer/notes` privé)
-      + symlink memory-bank ; auto-mémoire Claude
+      + symlink .context ; auto-mémoire Claude
 - [x] Roadmap réorganisée « fondations d'abord » (M0→M6)
 
 ---

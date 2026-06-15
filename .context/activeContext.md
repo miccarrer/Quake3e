@@ -136,7 +136,7 @@ Le chemin local du repo ne change pas → symlink/MOC vault inchangés. **M1 ter
 1. ✅ Analyse complète des 66 commits de `omg-urt/urbanterror-slim`
 2. ✅ Génération de `ANALYSIS_REPORT.md` (11 fonctionnalités manquantes identifiées)
 3. ✅ Création de `ROADMAP.md` (6 phases détaillées)
-4. ✅ Configuration du Memory Bank (`.clinerules`, `.instructions.md`, `.agents/`, 6 fichiers `memory-bank/`)
+4. ✅ Configuration du Memory Bank (`.clinerules`, `.instructions.md`, `.agents/`, 6 fichiers `.context/`)
 
 ### Session 2 — Phase 1A + nettoyage (agents Copilot + Claude)
 1. ✅ Phase 1A implémentée et commitée (branding, build config, sécurité, window margins, modversion)
