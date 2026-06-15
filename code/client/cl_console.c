@@ -768,7 +768,7 @@ static void Con_DrawInput( void ) {
 		return;
 	}
 
-	y = con->vislines - ( smallchar_height * 2 );
+	y = con->vislines - smallchar_height - ( smallchar_height / 3 );
 
 	re.SetColor( con->color );
 
@@ -943,9 +943,12 @@ static void Con_DrawSolidConsole( float frac ) {
 	// the active one highlighted, with a 1px border. Drawn in pixel space to line
 	// up with the small-char text. Switch with shift+left/right or mouse buttons.
 	if ( con_tabs->integer ) {
-		static const vec4_t bgActive = { 0.22f, 0.24f, 0.30f, 0.90f };
-		static const vec4_t bgInactive = { 0.06f, 0.06f, 0.08f, 0.75f };
-		static const vec4_t border = { 0.45f, 0.45f, 0.55f, 1.00f };
+		// opaque backgrounds (so the panel's red border does not show through)
+		// and a red outline on the sides + bottom, so the red border wraps around
+		// the tabs as one shape with the console.
+		static const vec4_t bgActive = { 0.20f, 0.20f, 0.24f, 1.00f };
+		static const vec4_t bgInactive = { 0.07f, 0.07f, 0.09f, 1.00f };
+		const float *red = g_color_table[ColorIndex( COLOR_RED )];
 		int th = smallchar_height + 4;
 		int ty = lines; // hang the tabs just below the console panel
 		int tx = smallchar_width;
@@ -961,10 +964,10 @@ static void Con_DrawSolidConsole( float frac ) {
 			re.SetColor( active ? bgActive : bgInactive );
 			re.DrawStretchPic( tx, ty, tw, th, 0, 0, 0, 0, cls.whiteShader );
 
-			re.SetColor( border );
-			re.DrawStretchPic( tx, ty, tw, 1, 0, 0, 0, 0, cls.whiteShader );          // top
+			re.SetColor( red );
 			re.DrawStretchPic( tx, ty, 1, th, 0, 0, 0, 0, cls.whiteShader );          // left
 			re.DrawStretchPic( tx + tw - 1, ty, 1, th, 0, 0, 0, 0, cls.whiteShader ); // right
+			re.DrawStretchPic( tx, ty + th - 2, tw, 2, 0, 0, 0, 0, cls.whiteShader ); // bottom
 
 			re.SetColor( g_color_table[ColorIndex( active ? COLOR_YELLOW : COLOR_WHITE )] );
 			for ( k = 0; con_names[t][k]; k++ )
