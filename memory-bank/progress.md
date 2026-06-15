@@ -2,7 +2,8 @@
 
 ## État global du projet
 
-**Milestone actuel** : **M1 — Identité & hygiène des fichiers**. Fondations (M0) posées. Roadmap réorganisée « fondations d'abord » (voir `ROADMAP.md`).
+**Milestone actuel** : **M7 — Qualité & durcissement** (audit 2026-06-15, voir `AUDIT.md`).
+Fondations M0–M4 terminées ; M5 partiel (cvars + tellme faits, console/demo différés) ; M6 (release) en attente.
 
 ---
 
@@ -105,6 +106,15 @@ runtime itératifs — non adaptées au port à l'aveugle. Différées jusqu'à 
 ### M6 — Release v1.0.0
 - [ ] Build test complet via CI ; tag `v1.0.0` ; CHANGELOG
 
+### M7 — Qualité & durcissement (modernisation 2026) ← **EN COURS** (audit 2026-06-15)
+> Issu de l'audit `AUDIT.md`. Branche `feature/modernization-m7`. 4 phases, impact décroissant.
+- [ ] **Phase 1** Tests & fuzzing — `tests/unit/` (Unity) + `tests/fuzz/` (libFuzzer) hors `code/`,
+      jobs CI `unit`/`fuzz-smoke`. 🔴 plus gros trou (~60K SLOC, 0 test)
+- [ ] **Phase 2** Durcissement CI — CodeQL, dependabot, SHA-pinning actions, build provenance, job MSVC
+- [ ] **Phase 3** Build & versioning — `git describe --match 'v[0-9]*'`→`SVN_VERSION` (hook
+      `q_shared.h:30-32`, 0 modif code), `-std=gnu99`, durcissement PIE/RELRO. Touche le Makefile
+- [ ] **Phase 4** Env & polish — devcontainer/Dockerfile, CODE_OF_CONDUCT, badges README, ARCHITECTURE.md
+
 ---
 
 ## 📊 Métriques
@@ -115,5 +125,5 @@ runtime itératifs — non adaptées au port à l'aveugle. Différées jusqu'à 
 | Fonctionnalités déjà intégrées | 13 |
 | Fonctionnalités intégrées en M0 | 4 (sécurité + modversion + window margins) |
 | Fonctionnalités manquantes restantes | ~7 (M5) |
-| Milestones roadmap | 7 (M0–M6) |
-| Milestones terminés | 1 (M0 — fondations) |
+| Milestones roadmap | 8 (M0–M7) |
+| Milestones terminés | 5 (M0–M4 fondations) ; M5 partiel |
