@@ -106,8 +106,8 @@ runtime itératifs — non adaptées au port à l'aveugle. Différées jusqu'à 
 ### M6 — Release v1.0.0
 - [ ] Build test complet via CI ; tag `v1.0.0` ; CHANGELOG
 
-### M7 — Qualité & durcissement (modernisation 2026) ← **QUASI FAIT** (2026-06-15)
-> Issu de l'audit `AUDIT.md`. Branche `feature/modernization-m7` (7 commits, non poussés).
+### M7 — Qualité & durcissement (modernisation 2026) ← ✅ **MERGÉ sur main** (PR #1, 2026-06-15)
+> Issu de l'audit `AUDIT.md`. 8 commits mergés (`1a6a244f`), CI verte sur main (8/8 jobs).
 - [x] **Phase 1** Tests & fuzzing — `tests/unit/` (Unity, 8 tests q_math vérifiés) +
       `tests/fuzz/fuzz_info` (libFuzzer Info_*) + `support/stubs.c`, jobs CI `unit`/`fuzz-smoke`
 - [x] **Phase 2** Durcissement CI — CodeQL, dependabot, **SHA-pinning** de toutes les actions,
@@ -127,6 +127,6 @@ runtime itératifs — non adaptées au port à l'aveugle. Différées jusqu'à 
 | Commits urbanterror-slim analysés | 66 |
 | Fonctionnalités déjà intégrées | 13 |
 | Fonctionnalités intégrées en M0 | 4 (sécurité + modversion + window margins) |
-| Fonctionnalités manquantes restantes | ~7 (M5) |
+| Fonctionnalités manquantes restantes | 3 différées (console-onglets, demo UrT, dmaHD optionnel) |
 | Milestones roadmap | 8 (M0–M7) |
-| Milestones terminés | 5 (M0–M4 fondations) ; M5 partiel |
+| Milestones terminés | 6 (M0–M4 + M7) ; M5 quasi clos ; M6 (release) à venir |

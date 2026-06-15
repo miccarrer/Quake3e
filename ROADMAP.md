@@ -141,7 +141,8 @@ Ordre : **M0 → M1 → M2 → M3 → M4** (fondations) **→ M5** (features) **
 - [x] `sv_sayprefix` / `sv_tellprefix` (`dd52e95f`) — porté manuellement, build OK
 - [x] `sv_nofallDamage` (`be301ebf`) — porté manuellement, build OK
 - [x] `sv_infiniteStamina` (`bbb587d4`) — porté manuellement, build OK
-- [ ] Referee fix (`b834398f`) — `code/client/cl_keys.c` — **dépend de `tell_me` (tellme)** → après tellme
+- [x] Referee fix (`b834398f`) — `code/client/cl_keys.c` — **absorbé par la réimplémentation de
+      tellme** (gating `chat_cmdMode`, voir `cl_keys.c:511-553`). Aucune action séparée requise.
 
 ### Optionnel
 - [ ] dmaHD (`213e0e5d`, ~1524 lignes) — décision en attente

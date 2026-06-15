@@ -1,25 +1,31 @@
 # Active Context — Urban Terror Optimized
 
 ## Dernière mise à jour
-2026-06-15 — Session 4 : audit des fondations + ouverture du milestone M7 (modernisation)
+2026-06-15 — Session 4 : audit fondations + M7 (modernisation) **mergé sur main** (PR #1)
 
-## Milestone actuel : M7 — Qualité & durcissement (modernisation 2026)
+## Milestone actuel : M7 ✅ MERGÉ — prochaine cible : M6 (release)
 
-**Déclencheur** : audit demandé par l'utilisateur (2026-06-15) — « vérifier que les fondations
-sont bonnes » + lister ce qui peut être modernisé. Verdict : fondations M0–M4 solides.
-Rapport complet dans **`AUDIT.md`** (racine), suivi dans `ROADMAP.md` (M7).
+**M7 — Qualité & durcissement** : déclenché par un audit demandé par l'utilisateur (verdict :
+fondations M0–M4 solides). Rapport dans **`AUDIT.md`**, suivi `ROADMAP.md` (M7). Livré en
+8 commits, **mergé sur `main` via PR #1** (`1a6a244f`), **CI verte sur main** (8/8 jobs, dont
+cppcheck rendu informationnel). Branche `feature/modernization-m7`.
 
-**Branche de travail** : `feature/modernization-m7`.
-
-**M7 — 4 phases livrées (7 commits, branche non poussée)** :
-1. ✅ Tests & fuzzing — `tests/` (Unity 8 tests q_math + libFuzzer Info_*), jobs CI. Vérifié.
-2. ✅ Durcissement CI — CodeQL, dependabot, SHA-pinning toutes actions, provenance. (MSVC différé)
-3. ✅ Build & versioning — `git describe`→`SVN_VERSION` (vérifié binaire), `-std=gnu99` (build OK).
-   (durcissement PIE/RELRO différé — test JIT runtime requis)
+**M7 — 4 phases livrées et vérifiées** :
+1. ✅ Tests & fuzzing — `tests/` (Unity 8 tests q_math + libFuzzer Info_*), jobs CI `unit`/`fuzz-smoke`.
+2. ✅ Durcissement CI — CodeQL, dependabot, SHA-pinning toutes actions, build provenance.
+3. ✅ Build & versioning — `git describe`→`SVN_VERSION` (vérifié binaire), `-std=gnu99`.
 4. ✅ Env & polish — devcontainer/Dockerfile, CODE_OF_CONDUCT, badges README, ARCHITECTURE.md.
 
-**Restant (validation externe, hors environnement)** : job MSVC + rebrand `.sln` (Windows natif),
-flags durcissement PIE/RELRO (lancer le JIT VM en jeu), optionnels (codecov, FUNDING). + `git push`.
+**Différé M7 (validation externe requise)** : job MSVC + rebrand `.sln` (Windows natif),
+flags durcissement PIE/RELRO (test JIT VM en jeu), optionnels (codecov, FUNDING).
+
+## Prochaine cible recommandée : M6 — Release
+
+Les fondations ont atteint le rendement décroissant → pivoter vers la **livraison**. M5 quasi
+clos : cvars + tellme faits ; **referee fix absorbé par tellme** (réconcilié 2026-06-15) ;
+console-à-onglets / demo / dmaHD restent différés (réimpl + tests en jeu) et **ne bloquent pas**
+une release. CHANGELOG `[Unreleased]` consolidé (M2–M7). **Décisions en attente côté utilisateur** :
+numéro de version (v0.2.0 « modernisation » vs v1.0.0) et sort de dmaHD.
 
 **Notes techniques clés** (cf. AUDIT.md) :
 - `git describe` retombe sur le tag legacy `latest` → filtrer `--match 'v[0-9]*'` (= `v0.1.0-…`),

@@ -1,7 +1,20 @@
 # Analyse Définitive : urbanterror-slim vs urbanterror-optimized
 
-**Date** : 2026-06-14  
-**Total commits omg-urt analysés** : 66
+**Date d'analyse** : 2026-06-14 · **Total commits omg-urt analysés** : 66
+
+> ⚠️ **Document historique (analyse initiale).** L'état « Notre code : Absent / Manquant »
+> ci-dessous reflète le **2026-06-14** et n'est plus à jour. La **source de vérité courante**
+> est [`ROADMAP.md`](../../ROADMAP.md) (M5) et [`memory-bank/progress.md`](../../memory-bank/progress.md).
+>
+> **Réconciliation au 2026-06-15** — depuis cette analyse :
+> - ✅ **Faits** : Master server + `modversion`, sécurité downloads, window margins (M0) ;
+>   cvars serveur `sv_sayprefix`/`sv_tellprefix`/`sv_nofallDamage`/`sv_infiniteStamina`, et
+>   **Tellme / messagemode5** (M5).
+> - ✅ **Resolu sans action** : *x86 JIT NaN fix* (`56f03bca`) déjà présent via l'upstream
+>   Quake3e ; *referee fix* (`b834398f`) **absorbé** par la réimplémentation de Tellme
+>   (gating `chat_cmdMode` dans `cl_keys.c`).
+> - ⏸️ **Différés** (réimpl. fraîche + tests en jeu requis) : **console à onglets** (`2c70fdc0`),
+>   **demo UrT** (`9579fc7e`). **dmaHD** (`213e0e5d`) : optionnel, décision en attente.
 
 ---
 

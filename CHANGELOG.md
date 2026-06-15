@@ -8,7 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Governance & quality config: `CONTRIBUTING.md`, `SECURITY.md`, `CODEOWNERS`,
-  GitHub issue/PR templates, `.clang-tidy` (M2).
+  GitHub issue/PR templates, `.clang-tidy` (M2); `CODE_OF_CONDUCT.md`, `ARCHITECTURE.md`,
+  `AUDIT.md`, README badges, `.devcontainer/` (Dockerfile + devcontainer.json) (M7).
+- CI/CD: `ci.yml` (clang-format on changed lines, cppcheck, unit tests, fuzz smoke,
+  ASan/UBSan, Linux/macOS/Windows-MinGW build matrix) and `release.yml` (multi-platform
+  Vulkan+OpenGL builds, GitHub Releases) (M3).
+- Reference docs: `docs/CVARS.md`, `docs/CREDITS.md`, `docs/urt-features.md`,
+  `docs/legal/third-party.txt` (M4).
+- Server cvars: `sv_sayprefix` / `sv_tellprefix`, `sv_nofallDamage`, `sv_infiniteStamina` (M5).
+- Tellme / `messagemode5` chat mode: a leading `/` runs a client console command locally,
+  while text or `!cmd` is self-told to the server; with input-history recall (M5).
+- Test & fuzz harness (`tests/`): Unity unit tests for `q_math.c` and a libFuzzer target for
+  the userinfo parsers (`Info_*`), run under ASan/UBSan and wired into CI (M7).
+- Supply-chain & security tooling: CodeQL workflow, Dependabot (GitHub Actions),
+  SHA-pinned Actions, and Sigstore build-provenance attestation on releases (M7).
+
+### Changed
+- Build: the version banner is now stamped from `git describe` at build time (was a static
+  string); pinned the C dialect to `-std=gnu99` (M7).
 
 ## [0.1.0] - 2026-06-14
 
