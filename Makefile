@@ -286,6 +286,12 @@ else
 VERSION=1.32e
 endif
 
+# Dynamic build identifier from git, injected as SVN_VERSION (the startup banner
+# string in common.c). --match 'v[0-9]*' so the legacy 'latest' tag does not
+# shadow the release tag; falls back to the header Q3_VERSION when git is absent
+# (e.g. tarball builds). Q3_VERSION itself is left untouched (used with ARRAY_LEN).
+GIT_VERSION := $(shell git describe --tags --always --dirty --match 'v[0-9]*' 2>/dev/null)
+
 # common qvm definition
 ifeq ($(ARCH),x86_64)
   HAVE_VM_COMPILED = true
@@ -311,6 +317,15 @@ ifeq ($(ARCH),ppc64)
 endif
 
 BASE_CFLAGS =
+
+# Pin the C dialect: the code relies on GNU extensions (__attribute__, inline asm),
+# so gnu99 rather than c99. Locks behaviour as compiler defaults drift toward C23.
+# (MSVC uses the .sln, not this Makefile, so it is unaffected.)
+BASE_CFLAGS += -std=gnu99
+
+ifneq ($(GIT_VERSION),)
+  BASE_CFLAGS += -DSVN_VERSION=\\\"$(GIT_VERSION)\\\"
+endif
 
 ifeq ($(USE_SYSTEM_JPEG),1)
   BASE_CFLAGS += -DUSE_SYSTEM_JPEG
