@@ -13,3 +13,8 @@ updates:
     labels:
       - "dependencies"
       - "ci"
+    # Bundle all GitHub Actions bumps into a single PR instead of one per action.
+    groups:
+      github-actions:
+        patterns:
+          - "*"
