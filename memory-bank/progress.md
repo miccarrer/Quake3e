@@ -106,14 +106,17 @@ runtime itératifs — non adaptées au port à l'aveugle. Différées jusqu'à 
 ### M6 — Release v1.0.0
 - [ ] Build test complet via CI ; tag `v1.0.0` ; CHANGELOG
 
-### M7 — Qualité & durcissement (modernisation 2026) ← **EN COURS** (audit 2026-06-15)
-> Issu de l'audit `AUDIT.md`. Branche `feature/modernization-m7`. 4 phases, impact décroissant.
-- [ ] **Phase 1** Tests & fuzzing — `tests/unit/` (Unity) + `tests/fuzz/` (libFuzzer) hors `code/`,
-      jobs CI `unit`/`fuzz-smoke`. 🔴 plus gros trou (~60K SLOC, 0 test)
-- [ ] **Phase 2** Durcissement CI — CodeQL, dependabot, SHA-pinning actions, build provenance, job MSVC
-- [ ] **Phase 3** Build & versioning — `git describe --match 'v[0-9]*'`→`SVN_VERSION` (hook
-      `q_shared.h:30-32`, 0 modif code), `-std=gnu99`, durcissement PIE/RELRO. Touche le Makefile
-- [ ] **Phase 4** Env & polish — devcontainer/Dockerfile, CODE_OF_CONDUCT, badges README, ARCHITECTURE.md
+### M7 — Qualité & durcissement (modernisation 2026) ← **QUASI FAIT** (2026-06-15)
+> Issu de l'audit `AUDIT.md`. Branche `feature/modernization-m7` (7 commits, non poussés).
+- [x] **Phase 1** Tests & fuzzing — `tests/unit/` (Unity, 8 tests q_math vérifiés) +
+      `tests/fuzz/fuzz_info` (libFuzzer Info_*) + `support/stubs.c`, jobs CI `unit`/`fuzz-smoke`
+- [x] **Phase 2** Durcissement CI — CodeQL, dependabot, **SHA-pinning** de toutes les actions,
+      build provenance (release.yml). DIFFÉRÉ : job MSVC (non validable hors Windows)
+- [x] **Phase 3** Build & versioning — `git describe --match 'v[0-9]*'`→`SVN_VERSION` (vérifié
+      binaire), `-std=gnu99` (build clean validé). DIFFÉRÉ : durcissement PIE/RELRO (test JIT runtime)
+- [x] **Phase 4** Env & polish — devcontainer/Dockerfile, CODE_OF_CONDUCT, badges README, ARCHITECTURE.md
+- [ ] **Restant (validation externe)** : job MSVC + rebrand `.sln` (Windows), flags PIE/RELRO
+      (runtime JIT), optionnels (codecov, FUNDING, capture README). + `git push` de la branche
 
 ---
 

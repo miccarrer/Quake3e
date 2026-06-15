@@ -11,12 +11,15 @@ Rapport complet dans **`AUDIT.md`** (racine), suivi dans `ROADMAP.md` (M7).
 
 **Branche de travail** : `feature/modernization-m7`.
 
-**M7 — 4 phases** (impact décroissant, chacune mergeable seule) :
-1. 🔴 Tests & fuzzing — `tests/unit/` (Unity) + `tests/fuzz/` (libFuzzer), hors `code/`.
-2. 🟠 Durcissement CI — CodeQL, dependabot, SHA-pinning, provenance, job MSVC.
-3. 🟠 Build & versioning — `git describe --match 'v[0-9]*'` → `SVN_VERSION`, `-std=gnu99`,
-   durcissement PIE/RELRO. **Seule phase touchant le Makefile** (tests build requis).
-4. 🟡 Env reproductible & polish — devcontainer/Dockerfile, CODE_OF_CONDUCT, badges, ARCHITECTURE.md.
+**M7 — 4 phases livrées (7 commits, branche non poussée)** :
+1. ✅ Tests & fuzzing — `tests/` (Unity 8 tests q_math + libFuzzer Info_*), jobs CI. Vérifié.
+2. ✅ Durcissement CI — CodeQL, dependabot, SHA-pinning toutes actions, provenance. (MSVC différé)
+3. ✅ Build & versioning — `git describe`→`SVN_VERSION` (vérifié binaire), `-std=gnu99` (build OK).
+   (durcissement PIE/RELRO différé — test JIT runtime requis)
+4. ✅ Env & polish — devcontainer/Dockerfile, CODE_OF_CONDUCT, badges README, ARCHITECTURE.md.
+
+**Restant (validation externe, hors environnement)** : job MSVC + rebrand `.sln` (Windows natif),
+flags durcissement PIE/RELRO (lancer le JIT VM en jeu), optionnels (codecov, FUNDING). + `git push`.
 
 **Notes techniques clés** (cf. AUDIT.md) :
 - `git describe` retombe sur le tag legacy `latest` → filtrer `--match 'v[0-9]*'` (= `v0.1.0-…`),
