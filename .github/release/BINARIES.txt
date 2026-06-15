@@ -1,0 +1,17 @@
+Urban Terror Optimized — what's in this archive
+
+Single game client with dynamically loaded renderers (Vulkan + OpenGL).
+
+  urbanterror-optimized(.x64/.exe)   Game client. Starts with the Vulkan renderer
+                                     by default (recommended). If Vulkan fails to
+                                     start on your system, switch to OpenGL from the
+                                     in-game console:
+                                         \cl_renderer opengl
+                                         \vid_restart
+
+  urbanterror-optimized.ded(...)     Dedicated server (no renderer).
+
+  *_vulkan_*  (.so / .dll / .dylib)  Vulkan renderer module (loaded by the client).
+  *_opengl_*  (.so / .dll / .dylib)  OpenGL renderer module (fallback).
+
+Copy these into your Urban Terror installation (game data lives in q3ut4/).
