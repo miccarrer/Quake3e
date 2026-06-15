@@ -53,15 +53,17 @@ jobs:
   analyze:
     name: cppcheck (informational)
     runs-on: ubuntu-24.04
-    continue-on-error: true
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - run: sudo apt-get -qq update && sudo apt-get -y install cppcheck
       - name: Run cppcheck
+        # Informational only: findings are surfaced in the log but do not fail the
+        # job. The legacy base has known intentional findings (e.g. Com_Crash_f's
+        # deliberate null write to test the crash handler), so --error-exitcode is
+        # intentionally omitted rather than suppressing each one in upstream code.
         run: |
           cppcheck --quiet -j"$(nproc)" --enable=warning,portability,performance \
             --inline-suppr --suppress=missingInclude --suppress=missingIncludeSystem \
-            --error-exitcode=1 \
             code/qcommon code/client code/server code/botlib
 
   sanitizers:
