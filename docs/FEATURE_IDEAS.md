@@ -318,15 +318,17 @@ timestamps = sortie « golden » comparable au byte près.
 
 ### Tier 1 — headless + runner (le vrai déblocage)
 
-**Run headless** ✅ livré (chemin pas cher **et** complet)
+**Run headless** ✅ livré — **serveur et client, tous deux install-free + en CI**
 Wrapper `scripts/headless` (env SDL `dummy` + cvars `net_enabled 0`/`com_logTimestamps 0` +
-homepath temporaire isolé) en deux modes :
-- **serveur** (défaut) : serveur dédié → tout le non-rendu (cvars, cmd, fs, parse, alias…)
-  sans install ni pk3. C'est le mode utilisé par `make smoke` / la CI.
+homepath temporaire isolé) en deux modes, bootant sur le fixture minimal (zéro pk3) :
+- **serveur** (défaut) : serveur dédié → tout le non-rendu (cvars, cmd, fs, parse, alias…).
+  `make smoke`.
 - **client** (`URT_CLIENT=1`) : binaire client + **null renderer** (`code/renderernull/`,
-  `cl_renderer null`, aucune fenêtre/contexte GL) + son off → **le client complet boote
-  headless, VM UI/cgame de q3ut4 incluses**. Nécessite une vraie install dans `URT_BASEPATH`
-  (pour les QVM/pk3), donc hors CI mais idéal pour tester localement binds/démo/parse/réseau.
+  `cl_renderer null`, aucune fenêtre/contexte GL) + son off + **VM UI sautée** (`cl_noUI`,
+  les usages `uivm` étant déjà gardés) → **le client boote headless sans aucun asset**,
+  testant les sous-systèmes client (cvars, binds, console, démo I/O). `make smoke-client`.
+- **client + UI/cgame réels** (`URT_UI=1`) : charge les QVM du mod, donc nécessite une vraie
+  install dans `URT_BASEPATH` (hors CI) — pour tester le code client proche du gameplay.
 
 **Runner d'intégration `tests/integration/*.cfg` + `make smoke`** ✅ livré
 Scripts `.cfg` auto-vérifiés via `assert` + code de sortie, bootés sur un fixture minimal
