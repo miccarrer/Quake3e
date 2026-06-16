@@ -3611,6 +3611,7 @@ static const char *const identity_cvar_denylist[] = {
     "password",        // secret, must never be saved
     "cl_guid",         // engine-owned (CVAR_ROM), tied to the qkey
     "ip",              // set by the server
+    "cl_anonymous",    // write-protected by q3ut4 in-game, not settable per profile
     NULL };
 
 /*

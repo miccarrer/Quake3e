@@ -88,7 +88,12 @@ A profile is derived from the **live userinfo string** rather than a fixed list,
 so it captures whatever `CVAR_USERINFO` cvars are active — including the ones the
 mod (q3ut4) adds — without any list to maintain. Keys that are not part of a
 player's identity are excluded: `rate`, `snaps`, `teamtask`, `cg_predictItems`,
-`password`, `cl_guid`, `ip`.
+`password`, `cl_guid`, `ip`, `cl_anonymous` (write-protected by q3ut4 in-game).
+
+> **Tip:** save profiles **while in-game on a q3ut4 server** to capture the mod's
+> own appearance cvars. Saved from the main menu, a profile only holds the base
+> engine userinfo (name, model, colors…) because the mod cvars aren't registered
+> yet.
 
 ### Note — shared storage with `q3config.cfg`
 
