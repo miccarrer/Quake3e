@@ -46,5 +46,19 @@ quit
 launches `scripts/headless` with `+exec <case>`, and reads the exit code. The
 `scripts/headless` wrapper sets dummy SDL drivers and headless cvars
 (`dedicated 1`, `net_enabled 0`, `com_logTimestamps 0`) and an isolated temp
-homepath. These tests cover non-rendering subsystems (cvars, commands,
-filesystem, parsing); full client/render-path coverage needs a null renderer.
+homepath. This suite covers non-rendering subsystems (cvars, commands,
+filesystem, parsing) and needs no game assets, so it runs in CI.
+
+## Headless client (local)
+
+To exercise **client-only** code (binds, demo playback, console, client netcode)
+the wrapper has a client mode backed by the null renderer (`code/renderernull/`,
+`cl_renderer null`) — the full client boots without a window, UI/cgame VMs
+included. It needs a real install (QVMs/pk3s), so it is **not** part of the CI
+suite:
+
+```bash
+URT_CLIENT=1 URT_BASEPATH=/path/to/UrbanTerror \
+  scripts/headless +assert_cvar cl_renderer eq null +quit
+```
+

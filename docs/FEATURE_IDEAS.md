@@ -318,12 +318,15 @@ timestamps = sortie « golden » comparable au byte près.
 
 ### Tier 1 — headless + runner (le vrai déblocage)
 
-**Run headless (chemin pas cher)** ✅ livré
-Wrapper `scripts/headless` (env SDL `dummy` + cvars `dedicated 1`/`net_enabled 0`/
-`com_logTimestamps 0` + homepath temporaire isolé) → débloque tout le non-rendu via le serveur
-dédié (cvars, cmd, fs, parse, alias…) sans install ni pk3.
-- **Reste à faire (chemin complet)** : stub `renderer_null` + null sound (difficulté moyenne)
-  pour exercer le **client** (pipeline parse/démo/réseau) sous `dummy` — GL/Vulkan échoue sinon.
+**Run headless** ✅ livré (chemin pas cher **et** complet)
+Wrapper `scripts/headless` (env SDL `dummy` + cvars `net_enabled 0`/`com_logTimestamps 0` +
+homepath temporaire isolé) en deux modes :
+- **serveur** (défaut) : serveur dédié → tout le non-rendu (cvars, cmd, fs, parse, alias…)
+  sans install ni pk3. C'est le mode utilisé par `make smoke` / la CI.
+- **client** (`URT_CLIENT=1`) : binaire client + **null renderer** (`code/renderernull/`,
+  `cl_renderer null`, aucune fenêtre/contexte GL) + son off → **le client complet boote
+  headless, VM UI/cgame de q3ut4 incluses**. Nécessite une vraie install dans `URT_BASEPATH`
+  (pour les QVM/pk3), donc hors CI mais idéal pour tester localement binds/démo/parse/réseau.
 
 **Runner d'intégration `tests/integration/*.cfg` + `make smoke`** ✅ livré
 Scripts `.cfg` auto-vérifiés via `assert` + code de sortie, bootés sur un fixture minimal
