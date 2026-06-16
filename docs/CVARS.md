@@ -44,8 +44,8 @@ All default to the prior behaviour (prefixes) or off; `CVAR_ARCHIVE_ND`.
 
 ## Client — identity switching
 
-Save and load named identity profiles (name, model, colors, etc.) without touching
-gameplay settings. Profiles are stored as `identities/<name>.cfg`.
+Save and load named identity profiles (name, character, color, gear, fun items)
+without touching gameplay settings. Profiles are stored as `identities/<name>.cfg`.
 
 | Cvar | Default | Description |
 |------|:-------:|-------------|
@@ -58,7 +58,7 @@ gameplay settings. Profiles are stored as `identities/<name>.cfg`.
 |---------|-------------|
 | `saveidentity <name>` | Save current identity cvars to `identities/<name>.cfg` |
 | `loadidentity <name>` | Load identity from `identities/<name>.cfg` and set `cl_identity` |
-| `listidentities` | List all available profiles, with a name/model preview |
+| `listidentities` | List all available profiles, with the in-game name preview |
 | `currentidentity` | Show the active profile and any cvars changed since it was loaded |
 | `revertidentity` | Undo the last load / auto-rule (toggles back and forth; session-scoped) |
 
@@ -86,22 +86,38 @@ bind F7 revertidentity
 
 A profile is derived from the **live userinfo string** rather than a fixed list,
 so it captures whatever `CVAR_USERINFO` cvars are active — including the ones the
-mod (q3ut4) adds — without any list to maintain. Keys that are not part of a
-player's identity are excluded: `rate`, `snaps`, `teamtask`, `cg_predictItems`,
-`password`, `cl_guid`, `ip`, `cl_anonymous` (write-protected by q3ut4 in-game).
+mod (q3ut4) adds — without any list to maintain. What you actually get in UrT is
+`name`, the character (`racered`/`raceblue`/`racefree`), `cg_rgb`, `gear`, fun
+items (`funred`/`funblue`), and `weapmodes`.
+
+Two groups of keys are excluded:
+
+- **Not part of your identity / sensitive:** `rate`, `snaps`, `teamtask`,
+  `cg_predictItems`, `password`, `cl_guid`, `ip`, `cl_anonymous` (write-protected
+  by q3ut4 in-game).
+- **Quake3 vestiges that q3ut4 ignores:** `model`, `headmodel`, `team_model`,
+  `team_headmodel`, `sex`, `color1`, `color2`, `handicap`. They stay stuck on
+  their stock values and do nothing in UrT (see the note below), so saving them
+  was just noise.
 
 > **Tip:** save profiles **while in-game on a q3ut4 server** to capture the mod's
 > own appearance cvars. Saved from the main menu, a profile only holds the base
-> engine userinfo (name, model, colors…) because the mod cvars aren't registered
-> yet.
+> engine userinfo (`name`, colors…) because the mod cvars aren't registered yet.
+
+> **UrT note — your character is `race*`, not `model`.** The Quake3 `model` /
+> `headmodel` / `sex` cvars are inert in Urban Terror: the player character (and
+> its voice) is selected by `racered` / `raceblue` / `racefree`, set from the
+> in-game **Player Setup** menu. A fresh install leaves `model "sarge"`, which UrT
+> can't resolve, so it falls back to its **default (female) character** — change
+> the character in the menu, then re-save the identity.
 
 ### Note — shared storage with `q3config.cfg`
 
 Profiles are written with `seta`, so identity cvars live in the **same archived
 storage** as your main `q3config.cfg`. Two consequences:
 
-- `loadidentity` overwrites the matching keys (`name`, `model`, …) in the main
-  config the next time the config is saved — it is not a temporary overlay.
+- `loadidentity` overwrites the matching keys (`name`, `race*`, `gear`, …) in the
+  main config the next time the config is saved — it is not a temporary overlay.
 - If `cl_identity` is set, that profile is **auto-loaded at startup**, which can
   override a name/model you changed by hand in a previous session. Clear
   `cl_identity` (or re-save the profile) if you want manual changes to stick.

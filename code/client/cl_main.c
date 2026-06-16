@@ -3620,6 +3620,21 @@ static const char *const identity_cvar_denylist[] = {
     "cl_guid",         // engine-owned (CVAR_ROM), tied to the qkey
     "ip",              // set by the server
     "cl_anonymous",    // write-protected by q3ut4 in-game, not settable per profile
+    // Quake3 model/voice cvars that q3ut4 ignores: the player character is
+    // selected by racered/raceblue/racefree, and these stay stuck on their
+    // stock "sarge"/"male" values. Saving them is noise, and restoring them
+    // would overwrite nothing useful while looking like it controls the look.
+    "model",
+    "headmodel",
+    "team_model",
+    "team_headmodel",
+    "sex",
+    // More Quake3 vestiges q3ut4 does not use: color1/color2 are railgun trail
+    // colors (no railgun in UrT; the visible color is cg_rgb) and handicap is
+    // a max-health cap (UrT uses localized damage). Confirmed inert in-game.
+    "color1",
+    "color2",
+    "handicap",
     NULL };
 
 /*
@@ -3933,8 +3948,8 @@ CL_ListIdentities_f
 
 listidentities
 
-Lists all .cfg files in the identities/ directory, with a name/model
-preview parsed from each profile.
+Lists all .cfg files in the identities/ directory, with the in-game name
+parsed from each profile as a preview.
 */
 static void CL_ListIdentities_f( void ) {
 	char listbuf[4096];
@@ -3957,22 +3972,18 @@ static void CL_ListIdentities_f( void ) {
 		int baseLen = ( len > 4 && !Q_stricmp( ptr + len - 4, ".cfg" ) ) ? len - 4 : len;
 		char filename[MAX_OSPATH];
 		char nameVal[MAX_NAME_LENGTH];
-		char modelVal[MAX_CVAR_VALUE_STRING];
 		void *fileText;
 
 		nameVal[0] = '\0';
-		modelVal[0] = '\0';
 
 		Com_sprintf( filename, sizeof( filename ), "identities/%s", ptr );
 		if ( FS_ReadFile( filename, &fileText ) > 0 && fileText ) {
 			CL_IdentityProfileCvar( (const char *)fileText, "name", nameVal, sizeof( nameVal ) );
-			CL_IdentityProfileCvar( (const char *)fileText, "model", modelVal, sizeof( modelVal ) );
 			FS_FreeFile( fileText );
 		}
 
-		if ( nameVal[0] || modelVal[0] )
-			Com_Printf( "  %.*s  " S_COLOR_WHITE "(name: %s, model: %s)\n",
-			            baseLen, ptr, nameVal[0] ? nameVal : "?", modelVal[0] ? modelVal : "?" );
+		if ( nameVal[0] )
+			Com_Printf( "  %.*s  " S_COLOR_WHITE "(name: %s)\n", baseLen, ptr, nameVal );
 		else
 			Com_Printf( "  %.*s\n", baseLen, ptr );
 
