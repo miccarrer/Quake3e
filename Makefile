@@ -49,6 +49,10 @@ USE_OPENGL_API   = 1
 USE_VULKAN_API   = 1
 USE_RENDERER_DLOPEN = 1
 
+# Build the headless null renderer module (urbanterror-optimized_null_<arch>.so),
+# selectable with "+set cl_renderer null". Only meaningful with dlopen renderers.
+USE_RENDERER_NULL ?= 1
+
 # valid options: opengl, vulkan, opengl2
 RENDERER_DEFAULT = vulkan
 
@@ -213,6 +217,7 @@ RCDIR=$(MOUNT_DIR)/renderercommon
 R1DIR=$(MOUNT_DIR)/renderer
 R2DIR=$(MOUNT_DIR)/renderer2
 RVDIR=$(MOUNT_DIR)/renderervk
+NDIR=$(MOUNT_DIR)/renderernull
 SDLDIR=$(MOUNT_DIR)/sdl
 SDLHDIR=$(MOUNT_DIR)/libsdl/include/SDL2
 
@@ -662,6 +667,7 @@ TARGET_CLIENT = $(CNAME)$(ARCHEXT)$(BINEXT)
 TARGET_REND1 = $(RENDERER_PREFIX)_opengl_$(SHLIBNAME)
 TARGET_REND2 = $(RENDERER_PREFIX)_opengl2_$(SHLIBNAME)
 TARGET_RENDV = $(RENDERER_PREFIX)_vulkan_$(SHLIBNAME)
+TARGET_RENDN = $(RENDERER_PREFIX)_null_$(SHLIBNAME)
 
 TARGET_SERVER = $(DNAME)$(ARCHEXT)$(BINEXT)
 
@@ -684,6 +690,9 @@ ifneq ($(BUILD_CLIENT),0)
     endif
     ifeq ($(USE_VULKAN),1)
       TARGETS += $(B)/$(TARGET_RENDV)
+    endif
+    ifneq ($(USE_RENDERER_NULL),0)
+      TARGETS += $(B)/$(TARGET_RENDN)
     endif
   endif
 endif
@@ -842,6 +851,7 @@ endif
 	@if [ ! -d $(B)/rend2 ];then $(MKDIR) $(B)/rend2;fi
 	@if [ ! -d $(B)/rend2/glsl ];then $(MKDIR) $(B)/rend2/glsl;fi
 	@if [ ! -d $(B)/rendv ];then $(MKDIR) $(B)/rendv;fi
+	@if [ ! -d $(B)/rendn ];then $(MKDIR) $(B)/rendn;fi
 ifneq ($(BUILD_SERVER),0)
 	@if [ ! -d $(B)/ded ];then $(MKDIR) $(B)/ded/qvm;fi
 endif
@@ -1005,6 +1015,12 @@ ifneq ($(USE_RENDERER_DLOPEN), 0)
     $(B)/rendv/puff.o \
     $(B)/rendv/q_math.o
 endif
+
+# headless null renderer (dlopen module only)
+Q3RENDNOBJ = \
+  $(B)/rendn/tr_null.o \
+  $(B)/rendn/q_shared.o \
+  $(B)/rendn/q_math.o
 
 JPGOBJ = \
   $(B)/client/jpeg/jaricom.o \
@@ -1331,6 +1347,10 @@ $(B)/$(TARGET_RENDV): $(Q3RENDVOBJ)
 	$(echo_cmd) "LD $@"
 	$(Q)$(CC) -o $@ $(Q3RENDVOBJ) $(SHLIBCFLAGS) $(SHLIBLDFLAGS)
 
+$(B)/$(TARGET_RENDN): $(Q3RENDNOBJ)
+	$(echo_cmd) "LD $@"
+	$(Q)$(CC) -o $@ $(Q3RENDNOBJ) $(SHLIBCFLAGS) $(SHLIBLDFLAGS)
+
 #############################################################################
 # DEDICATED SERVER
 #############################################################################
@@ -1508,6 +1528,12 @@ $(B)/rendv/%.o: $(RCDIR)/%.c
 	$(DO_REND_CC)
 
 $(B)/rendv/%.o: $(CMDIR)/%.c
+	$(DO_REND_CC)
+
+$(B)/rendn/%.o: $(NDIR)/%.c
+	$(DO_REND_CC)
+
+$(B)/rendn/%.o: $(CMDIR)/%.c
 	$(DO_REND_CC)
 
 $(B)/client/%.o: $(UDIR)/%.c
