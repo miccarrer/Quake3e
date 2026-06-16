@@ -72,6 +72,15 @@ cvar_t	*cl_dlDirectory;
 
 cvar_t	*cl_reconnectArgs;
 
+// identity switching
+cvar_t *cl_identity;
+cvar_t *cl_identityRules;
+
+// one-level undo for loadidentity / identity rules (session-scoped)
+static char cl_prevIdentityInfo[BIG_INFO_STRING];
+static char cl_prevIdentityName[MAX_NAME_LENGTH];
+static qboolean cl_haveRevert = qfalse;
+
 // common cvars for GLimp modules
 cvar_t	*vid_xpos;			// X coordinate of window position
 cvar_t	*vid_ypos;			// Y coordinate of window position
@@ -150,6 +159,7 @@ static void CL_Ping_f( void );
 static void CL_InitRef( void );
 static void CL_ShutdownRef( refShutdownCode_t code );
 static void CL_InitGLimp_Cvars( void );
+static void CL_ApplyIdentityRules( const char *server );
 
 static void CL_NextDemo( void );
 
@@ -1631,6 +1641,9 @@ static void CL_Connect_f( void ) {
 	noGameRestart = qtrue;
 	CL_Disconnect( qtrue );
 	Con_Close();
+
+	// auto-select an identity profile for this server (cl_identityRules)
+	CL_ApplyIdentityRules( server );
 
 	Q_strncpyz( cls.servername, server, sizeof( cls.servername ) );
 
@@ -3570,6 +3583,465 @@ static void CL_InitRef( void ) {
 
 //===========================================================================================
 
+/*
+Identity switching
+
+Allows the player to save/load named identity profiles containing the
+userinfo cvars that describe a player (name, model, colors, and any
+CVAR_USERINFO cvars the mod adds — e.g. q3ut4's own appearance cvars).
+
+A profile is derived from the live userinfo string rather than a fixed
+cvar list, so it captures mod-specific identity cvars automatically.
+
+Files are stored as   identities/<name>.cfg   in the home game dir.
+
+NOTE: profiles are written with "seta", so loading one overwrites the
+matching keys in q3config.cfg on next config save. Identity cvars and
+the main config share the same archived storage — see docs/CVARS.md.
+
+The denylist below holds CVAR_USERINFO cvars that are NOT part of a
+player's identity (connection tuning, secrets, or engine-owned values)
+and must never be written to a profile.
+*/
+static const char *const identity_cvar_denylist[] = {
+    "rate",            // connection tuning, not identity
+    "snaps",           // connection tuning, not identity
+    "teamtask",        // transient gameplay state
+    "cg_predictItems", // prediction preference, not identity
+    "password",        // secret, must never be saved
+    "cl_guid",         // engine-owned (CVAR_ROM), tied to the qkey
+    "ip",              // set by the server
+    "cl_anonymous",    // write-protected by q3ut4 in-game, not settable per profile
+    NULL };
+
+/*
+CL_IdentityCvarDenied
+
+Returns qtrue if a userinfo key must not be saved into a profile.
+*/
+static qboolean CL_IdentityCvarDenied( const char *key ) {
+	int i;
+
+	for ( i = 0; identity_cvar_denylist[i]; i++ ) {
+		if ( !Q_stricmp( key, identity_cvar_denylist[i] ) )
+			return qtrue;
+	}
+	return qfalse;
+}
+
+/*
+CL_ValidIdentityName
+
+An identity name is turned into a file path (identities/<name>.cfg), so it must
+be a single safe path component. Allow only [A-Za-z0-9 _-] — this rejects path
+separators and '.', so "..", absolute paths and hidden files cannot be formed.
+*/
+static qboolean CL_ValidIdentityName( const char *name ) {
+	int i;
+
+	if ( !name || !name[0] || strlen( name ) >= 64 ) {
+		return qfalse;
+	}
+
+	for ( i = 0; name[i]; i++ ) {
+		const char c = name[i];
+		if ( !( ( c >= 'a' && c <= 'z' ) || ( c >= 'A' && c <= 'Z' ) ||
+		        ( c >= '0' && c <= '9' ) || c == '_' || c == '-' || c == ' ' ) ) {
+			return qfalse;
+		}
+	}
+	return qtrue;
+}
+
+/*
+CL_SaveIdentity_f
+
+saveidentity <name>
+
+Writes the current identity-related userinfo cvars to
+identities/<name>.cfg
+*/
+static void CL_SaveIdentity_f( void ) {
+	char filename[MAX_OSPATH];
+	fileHandle_t f;
+	const char *info;
+	char key[BIG_INFO_KEY];
+	char value[BIG_INFO_VALUE];
+	int count;
+
+	if ( Cmd_Argc() != 2 ) {
+		Com_Printf( "Usage: saveidentity <name>\n" );
+		return;
+	}
+
+	if ( !CL_ValidIdentityName( Cmd_Argv( 1 ) ) ) {
+		Com_Printf( S_COLOR_YELLOW "Invalid identity name (letters, digits, spaces, '-' or '_').\n" );
+		return;
+	}
+
+	Com_sprintf( filename, sizeof( filename ), "identities/%s.cfg", Cmd_Argv( 1 ) );
+
+	f = FS_FOpenFileWrite( filename );
+	if ( f == FS_INVALID_HANDLE ) {
+		Com_Printf( S_COLOR_YELLOW "Couldn't write %s.\n", filename );
+		return;
+	}
+
+	FS_Printf( f, "// identity profile: %s" Q_NEWLINE, Cmd_Argv( 1 ) );
+
+	// derive the profile from the live userinfo string so mod-specific
+	// CVAR_USERINFO cvars are captured automatically; drop denied keys.
+	info = Cvar_InfoString( CVAR_USERINFO, NULL );
+	count = 0;
+	do {
+		info = Info_NextPair( info, key, value );
+		if ( key[0] == '\0' )
+			break;
+		if ( CL_IdentityCvarDenied( key ) )
+			continue;
+		FS_Printf( f, "seta %s \"%s\"" Q_NEWLINE, key, value );
+		count++;
+	} while ( *info != '\0' );
+
+	FS_FCloseFile( f );
+
+	// the current look now *is* this profile, so make it the active identity
+	Cvar_Set( "cl_identity", Cmd_Argv( 1 ) );
+
+	Com_Printf( "Saved identity '%s' (%i cvars) to %s\n", Cmd_Argv( 1 ), count, filename );
+}
+
+/*
+CL_StashRevert
+
+Snapshots the current userinfo + cl_identity so the last loadidentity /
+identity-rule application can be undone with revertidentity. Called just
+before a profile is applied, so it captures the pre-load state.
+*/
+static void CL_StashRevert( void ) {
+	// Cvar_InfoString returns a shared static buffer — copy immediately.
+	Q_strncpyz( cl_prevIdentityInfo, Cvar_InfoString( CVAR_USERINFO, NULL ), sizeof( cl_prevIdentityInfo ) );
+	Q_strncpyz( cl_prevIdentityName, cl_identity->string, sizeof( cl_prevIdentityName ) );
+	cl_haveRevert = qtrue;
+}
+
+/*
+CL_ApplyUserinfo
+
+Applies a userinfo infostring (key\value\...) to the live cvars, skipping
+denied keys. Used by revertidentity to restore a snapshot.
+*/
+static void CL_ApplyUserinfo( const char *info ) {
+	char key[BIG_INFO_KEY];
+	char value[BIG_INFO_VALUE];
+
+	do {
+		info = Info_NextPair( info, key, value );
+		if ( key[0] == '\0' )
+			break;
+		if ( CL_IdentityCvarDenied( key ) )
+			continue;
+		Cvar_Set( key, value );
+	} while ( *info != '\0' );
+}
+
+/*
+CL_DoLoadIdentity
+
+Validates <name>, stashes an undo snapshot, execs identities/<name>.cfg
+and sets cl_identity. Returns qtrue on success. With quiet=qtrue (used by
+identity rules) it stays silent on validation / not-found errors.
+*/
+static qboolean CL_DoLoadIdentity( const char *rawName, qboolean quiet ) {
+	char filename[MAX_OSPATH];
+	char cmd[MAX_OSPATH + 8];
+	char name[MAX_NAME_LENGTH];
+
+	if ( !CL_ValidIdentityName( rawName ) ) {
+		if ( !quiet )
+			Com_Printf( S_COLOR_YELLOW "Invalid identity name (letters, digits, spaces, '-' or '_').\n" );
+		return qfalse;
+	}
+
+	Q_strncpyz( name, rawName, sizeof( name ) );
+	Com_sprintf( filename, sizeof( filename ), "identities/%s.cfg", name );
+
+	if ( !FS_FileExists( filename ) ) {
+		if ( !quiet )
+			Com_Printf( S_COLOR_YELLOW "Identity '%s' not found.\n", name );
+		return qfalse;
+	}
+
+	CL_StashRevert();
+
+	Com_sprintf( cmd, sizeof( cmd ), "exec \"%s\"\n", filename );
+	Cbuf_AddText( cmd );
+
+	Cvar_Set( "cl_identity", name );
+	return qtrue;
+}
+
+/*
+CL_LoadIdentity_f
+
+loadidentity <name>
+
+Execs identities/<name>.cfg and updates the cl_identity cvar.
+*/
+static void CL_LoadIdentity_f( void ) {
+	if ( Cmd_Argc() != 2 ) {
+		Com_Printf( "Usage: loadidentity <name>\n" );
+		return;
+	}
+
+	if ( CL_DoLoadIdentity( Cmd_Argv( 1 ), qfalse ) )
+		Com_Printf( "Loaded identity '%s'\n", Cmd_Argv( 1 ) );
+}
+
+/*
+CL_RevertIdentity_f
+
+revertidentity
+
+Restores the userinfo from before the last loadidentity / identity-rule
+application. Swaps the snapshot with the current state, so calling it
+again toggles back. Session-scoped (snapshot is not persisted).
+*/
+static void CL_RevertIdentity_f( void ) {
+	char curInfo[BIG_INFO_STRING];
+	char curName[MAX_NAME_LENGTH];
+
+	if ( !cl_haveRevert ) {
+		Com_Printf( "No previous identity to revert to this session.\n" );
+		return;
+	}
+
+	// capture current state, restore the snapshot, keep current as the new snapshot
+	Q_strncpyz( curInfo, Cvar_InfoString( CVAR_USERINFO, NULL ), sizeof( curInfo ) );
+	Q_strncpyz( curName, cl_identity->string, sizeof( curName ) );
+
+	CL_ApplyUserinfo( cl_prevIdentityInfo );
+	Cvar_Set( "cl_identity", cl_prevIdentityName );
+
+	Q_strncpyz( cl_prevIdentityInfo, curInfo, sizeof( cl_prevIdentityInfo ) );
+	Q_strncpyz( cl_prevIdentityName, curName, sizeof( cl_prevIdentityName ) );
+
+	Com_Printf( "Reverted identity (now: '%s').\n",
+	            cl_identity->string[0] ? cl_identity->string : "unnamed" );
+}
+
+/*
+CL_CurrentIdentity_f
+
+currentidentity
+
+Prints the active profile and lists any identity cvars that have drifted
+from the saved profile (so the user knows whether to re-saveidentity).
+*/
+static void CL_CurrentIdentity_f( void ) {
+	char filename[MAX_OSPATH];
+	void *fileText;
+	const char *p;
+	int diff;
+
+	if ( !cl_identity->string[0] ) {
+		Com_Printf( "No identity loaded.\n" );
+		return;
+	}
+
+	Com_Printf( "Current identity: " S_COLOR_WHITE "%s\n", cl_identity->string );
+
+	if ( !CL_ValidIdentityName( cl_identity->string ) )
+		return;
+
+	Com_sprintf( filename, sizeof( filename ), "identities/%s.cfg", cl_identity->string );
+	if ( FS_ReadFile( filename, &fileText ) <= 0 || !fileText ) {
+		Com_Printf( S_COLOR_YELLOW "  (profile file is missing)\n" );
+		return;
+	}
+
+	diff = 0;
+	p = (const char *)fileText;
+	while ( *p ) {
+		const char *tok = COM_ParseExt( &p, qtrue );
+		char key[MAX_TOKEN_CHARS];
+		char saved[MAX_CVAR_VALUE_STRING];
+		char live[MAX_CVAR_VALUE_STRING];
+
+		if ( !tok[0] )
+			break;
+		if ( Q_stricmp( tok, "seta" ) != 0 )
+			continue;
+
+		Q_strncpyz( key, COM_ParseExt( &p, qfalse ), sizeof( key ) );
+		Q_strncpyz( saved, COM_ParseExt( &p, qfalse ), sizeof( saved ) );
+		Cvar_VariableStringBuffer( key, live, sizeof( live ) );
+
+		if ( strcmp( live, saved ) != 0 ) {
+			Com_Printf( "  modified: %s = \"%s\"  " S_COLOR_WHITE "(profile: \"%s\")\n", key, live, saved );
+			diff++;
+		}
+	}
+	FS_FreeFile( fileText );
+
+	if ( diff == 0 )
+		Com_Printf( "  matches the saved profile.\n" );
+	else
+		Com_Printf( "  %i cvar(s) changed since load — 'saveidentity %s' to update.\n", diff, cl_identity->string );
+}
+
+/*
+CL_IdentityProfileCvar
+
+Extracts the value of a "seta <key> ..." line from a saved identity
+profile's text into out. Returns qtrue if the key was found.
+*/
+static qboolean CL_IdentityProfileCvar( const char *text, const char *wantKey, char *out, int outSize ) {
+	const char *p = text;
+
+	out[0] = '\0';
+	while ( *p ) {
+		const char *tok = COM_ParseExt( &p, qtrue );
+		if ( !tok[0] )
+			break;
+		if ( Q_stricmp( tok, "seta" ) != 0 )
+			continue;
+		// next token is the key, the one after is the value
+		{
+			char keyBuf[MAX_TOKEN_CHARS];
+			Q_strncpyz( keyBuf, COM_ParseExt( &p, qfalse ), sizeof( keyBuf ) );
+			tok = COM_ParseExt( &p, qfalse );
+			if ( !Q_stricmp( keyBuf, wantKey ) ) {
+				Q_strncpyz( out, tok, outSize );
+				return qtrue;
+			}
+		}
+	}
+	return qfalse;
+}
+
+/*
+CL_ListIdentities_f
+
+listidentities
+
+Lists all .cfg files in the identities/ directory, with a name/model
+preview parsed from each profile.
+*/
+static void CL_ListIdentities_f( void ) {
+	char listbuf[4096];
+	char *ptr;
+	int count;
+
+	Com_Printf( "Available identities:\n" );
+
+	Com_Memset( listbuf, 0, sizeof( listbuf ) );
+	count = FS_GetFileList( "identities", ".cfg", listbuf, sizeof( listbuf ) );
+
+	if ( count <= 0 ) {
+		Com_Printf( "  (none)\n" );
+		return;
+	}
+
+	ptr = listbuf;
+	while ( *ptr ) {
+		int len = strlen( ptr );
+		int baseLen = ( len > 4 && !Q_stricmp( ptr + len - 4, ".cfg" ) ) ? len - 4 : len;
+		char filename[MAX_OSPATH];
+		char nameVal[MAX_NAME_LENGTH];
+		char modelVal[MAX_CVAR_VALUE_STRING];
+		void *fileText;
+
+		nameVal[0] = '\0';
+		modelVal[0] = '\0';
+
+		Com_sprintf( filename, sizeof( filename ), "identities/%s", ptr );
+		if ( FS_ReadFile( filename, &fileText ) > 0 && fileText ) {
+			CL_IdentityProfileCvar( (const char *)fileText, "name", nameVal, sizeof( nameVal ) );
+			CL_IdentityProfileCvar( (const char *)fileText, "model", modelVal, sizeof( modelVal ) );
+			FS_FreeFile( fileText );
+		}
+
+		if ( nameVal[0] || modelVal[0] )
+			Com_Printf( "  %.*s  " S_COLOR_WHITE "(name: %s, model: %s)\n",
+			            baseLen, ptr, nameVal[0] ? nameVal : "?", modelVal[0] ? modelVal : "?" );
+		else
+			Com_Printf( "  %.*s\n", baseLen, ptr );
+
+		ptr += len + 1;
+	}
+}
+
+/*
+CL_CompleteIdentityName
+
+Tab completion for saveidentity / loadidentity
+*/
+static void CL_CompleteIdentityName( const char *args, int argNum ) {
+	if ( argNum == 2 ) {
+		Field_CompleteFilename( "identities", ".cfg", qtrue, FS_MATCH_EXTERN | FS_MATCH_STICK );
+	}
+}
+
+/*
+CL_TrimSpaces
+
+In-place trims leading/trailing spaces and tabs, returning a pointer into
+the (mutated) input. Helper for parsing cl_identityRules entries.
+*/
+static char *CL_TrimSpaces( char *s ) {
+	char *end;
+
+	while ( *s == ' ' || *s == '\t' )
+		s++;
+	end = s + strlen( s );
+	while ( end > s && ( end[-1] == ' ' || end[-1] == '\t' ) )
+		*--end = '\0';
+	return s;
+}
+
+/*
+CL_ApplyIdentityRules
+
+Called from CL_Connect_f. cl_identityRules is a semicolon-separated list
+of "pattern=profile" entries; the server address/hostname is matched
+against each pattern (wildcards via Com_Filter) and the first matching
+profile is loaded. Lets the player wear a clan tag on clan servers, a
+casual name elsewhere, etc. — chosen deterministically, not at random.
+
+Example:
+  set cl_identityRules "*clan.example.com*=clantag; *jump*=casual; *=main"
+*/
+static void CL_ApplyIdentityRules( const char *server ) {
+	char rules[MAX_STRING_CHARS];
+	char *entry;
+
+	if ( !cl_identityRules || !cl_identityRules->string[0] || !server || !server[0] )
+		return;
+
+	Q_strncpyz( rules, cl_identityRules->string, sizeof( rules ) );
+
+	entry = strtok( rules, ";" );
+	while ( entry ) {
+		char *eq = strchr( entry, '=' );
+		if ( eq ) {
+			char *pattern, *profile;
+
+			*eq = '\0';
+			pattern = CL_TrimSpaces( entry );
+			profile = CL_TrimSpaces( eq + 1 );
+
+			if ( pattern[0] && profile[0] && Com_Filter( pattern, server ) ) {
+				if ( CL_DoLoadIdentity( profile, qtrue ) )
+					Com_Printf( "Identity rule: '%s' matched %s, loaded '%s'\n", pattern, server, profile );
+				else
+					Com_Printf( S_COLOR_YELLOW "Identity rule '%s' matched but profile '%s' is invalid/missing.\n", pattern, profile );
+				return; // first match wins
+			}
+		}
+		entry = strtok( NULL, ";" );
+	}
+}
 
 static void CL_SetModel_f( void ) {
 	const char *arg;
@@ -4074,6 +4546,11 @@ void CL_Init( void ) {
 	Cvar_Get ("password", "", CVAR_USERINFO | CVAR_NORESTART);
 	Cvar_Get ("cg_predictItems", "1", CVAR_USERINFO | CVAR_ARCHIVE );
 
+	// identity switching
+	cl_identity = Cvar_Get( "cl_identity", "", CVAR_ARCHIVE_ND );
+	Cvar_SetDescription( cl_identity, "Name of the currently-loaded identity profile (for saveidentity/loadidentity)." );
+	cl_identityRules = Cvar_Get( "cl_identityRules", "", CVAR_ARCHIVE_ND );
+	Cvar_SetDescription( cl_identityRules, "Auto-select an identity per server: \"pattern=profile; ...\" entries; on connect the server address is matched (wildcards) and the first matching profile is loaded." );
 
 	// cgame might not be initialized before menu is used
 	Cvar_Get ("cg_viewsize", "100", CVAR_ARCHIVE_ND );
@@ -4119,6 +4596,25 @@ void CL_Init( void ) {
 	Cmd_AddCommand( "dlmap", CL_Download_f );
 #endif
 	Cmd_AddCommand( "modelist", CL_ModeList_f );
+
+	// identity switching commands
+	Cmd_AddCommand( "saveidentity", CL_SaveIdentity_f );
+	Cmd_SetCommandCompletionFunc( "saveidentity", CL_CompleteIdentityName );
+	Cmd_AddCommand( "loadidentity", CL_LoadIdentity_f );
+	Cmd_SetCommandCompletionFunc( "loadidentity", CL_CompleteIdentityName );
+	Cmd_AddCommand( "listidentities", CL_ListIdentities_f );
+	Cmd_AddCommand( "revertidentity", CL_RevertIdentity_f );
+	Cmd_AddCommand( "currentidentity", CL_CurrentIdentity_f );
+
+	// auto-load saved identity at startup (validate first — it is exec'd)
+	if ( cl_identity->string[0] && CL_ValidIdentityName( cl_identity->string ) ) {
+		char idFile[MAX_OSPATH];
+		Com_sprintf( idFile, sizeof( idFile ), "identities/%s.cfg", cl_identity->string );
+		if ( FS_FileExists( idFile ) ) {
+			Cbuf_AddText( va( "exec \"%s\"\n", idFile ) );
+			Com_DPrintf( "Auto-loading identity '%s'\n", cl_identity->string );
+		}
+	}
 
 	Cvar_Set( "cl_running", "1" );
 #ifdef USE_MD5
@@ -4192,6 +4688,9 @@ void CL_Shutdown( const char *finalmsg, qboolean quit ) {
 	Cmd_RemoveCommand ("serverinfo");
 	Cmd_RemoveCommand ("systeminfo");
 	Cmd_RemoveCommand ("modelist");
+	Cmd_RemoveCommand( "saveidentity" );
+	Cmd_RemoveCommand( "loadidentity" );
+	Cmd_RemoveCommand( "listidentities" );
 
 #ifdef USE_CURL
 	Com_DL_Cleanup( &download );

@@ -18,7 +18,7 @@ est au-dessus de la moyenne des forks. Ce qui suit comble les lacunes restantes.
 | **Release** | `release.yml` : 5 plateformes, Vulkan+OpenGL, publication GitHub Release, actions récentes |
 | **Qualité code** | `.clang-format`, `.clang-tidy`, `.editorconfig`, `.gitattributes`, `.gitignore`, hook clang-format à l'édition |
 | **Gouvernance** | CODEOWNERS, templates issue/PR, SECURITY, CONTRIBUTING, CHANGELOG (Keep a Changelog) |
-| **Docs** | README, `docs/BUILD.md` (multiplateforme), CVARS/CREDITS/urt-features/legal, memory-bank à jour |
+| **Docs** | README, `docs/BUILD.md` (multiplateforme), CVARS/CREDITS/urt-features/legal, .context à jour |
 | **Build** | Makefile branché (CNAME, Vulkan défaut), `compile_commands.json` via bear, MSVC 2017 |
 
 ### ⚠️ Lacunes → traitées en M7
@@ -69,7 +69,7 @@ modifs `code/` minimisées.
 - [x] `.devcontainer/devcontainer.json` + `Dockerfile` (toolchain one-command, miroir CI)
 - [x] `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1)
 - [x] README : badges (CI/CodeQL/release/licence/plateformes) + liens CoC/ARCHITECTURE/AUDIT
-- [x] `ARCHITECTURE.md` (promotion de `memory-bank/systemPatterns.md`, à jour)
+- [x] `ARCHITECTURE.md` (promotion de `.context/systemPatterns.md`, à jour)
 - [ ] *(optionnel)* `.github/FUNDING.yml` ; capture/GIF README
 
 ---

@@ -1,7 +1,38 @@
 # Active Context — Urban Terror Optimized
 
 ## Dernière mise à jour
-2026-06-15 — Session 4 : audit + M7 mergé, v0.2.0 publiée, hygiène GitHub + triage CodeQL
+2026-06-16 — Session 6 : feature « Identity Switching » (#1) ✅ commitée + doc réalignée
+
+## Feature terminée : Identity Switching (#1) ✅
+
+**Branche** : `feature/identity-switching` (5 commits **locaux non poussés** ; working tree propre)
+
+**Objectif** : Permettre aux joueurs de switcher d'identité (nom, apparence, tags de clan) sans
+toucher aux réglages de jeu (graphismes, réseau, etc.).
+
+**Commandes** : `saveidentity <name>`, `loadidentity <name>`, `listidentities`,
+`currentidentity`, `revertidentity`
+**Cvars** : `cl_identity` (profil actif, lu au démarrage),
+`cl_identityRules` (auto-identité par serveur : `pattern=profile; …`)
+**Fichiers** : `identities/<name>.cfg` — profil **dérivé du userinfo live** (capture les cvars
+spécifiques au mod), denylist pour les clés non-identité/sensibles (rate, snaps, cl_guid, password,
+cl_anonymous, …)
+**Compat** : ✅ 100% local (userinfo keys déjà transportées par les serveurs legacy)
+
+**Évolution depuis la conception initiale** (cf. messages de commit) :
+- `cl_nameRotate` **abandonné** (UrT identifie par `cl_guid`, pas par nom → aucun bénéfice
+  anti-tracking, changeait le nom silencieusement).
+- Profil dérivé du userinfo live au lieu d'une liste fixe Quake3-stock.
+- Ajout `revertidentity` (undo 1 niveau, session) + `currentidentity` (drift) + `cl_identityRules`
+  (auto-identité par serveur, remplacement honnête de nameRotate).
+- `saveidentity` fixe le profil sauvé comme identité active ; `cl_anonymous` exclu (write-protected
+  in-game par q3ut4).
+
+**Implémentation** : tout dans `code/client/cl_main.c`, commits `41ca3bcc`→`e0afda38`.
+
+**Reste à faire** : push + PR + test en jeu.
+**Bug mineur connu** : `CL_Shutdown` ne fait `Cmd_RemoveCommand` que pour 3/5 commandes
+(`revertidentity` + `currentidentity` manquent) — sans impact pratique, à corriger au prochain passage.
 
 ## Post-release : hygiène GitHub & sécurité (2026-06-15)
 
@@ -114,7 +145,7 @@ Le chemin local du repo ne change pas → symlink/MOC vault inchangés. **M1 ter
 1. ✅ Analyse complète des 66 commits de `omg-urt/urbanterror-slim`
 2. ✅ Génération de `ANALYSIS_REPORT.md` (11 fonctionnalités manquantes identifiées)
 3. ✅ Création de `ROADMAP.md` (6 phases détaillées)
-4. ✅ Configuration du Memory Bank (`.clinerules`, `.instructions.md`, `.agents/`, 6 fichiers `memory-bank/`)
+4. ✅ Configuration du Memory Bank (`.clinerules`, `.instructions.md`, `.agents/`, 6 fichiers `.context/`)
 
 ### Session 2 — Phase 1A + nettoyage (agents Copilot + Claude)
 1. ✅ Phase 1A implémentée et commitée (branding, build config, sécurité, window margins, modversion)

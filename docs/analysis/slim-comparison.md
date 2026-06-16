@@ -4,7 +4,7 @@
 
 > ⚠️ **Document historique (analyse initiale).** L'état « Notre code : Absent / Manquant »
 > ci-dessous reflète le **2026-06-14** et n'est plus à jour. La **source de vérité courante**
-> est [`ROADMAP.md`](../../ROADMAP.md) (M5) et [`memory-bank/progress.md`](../../memory-bank/progress.md).
+> est [`ROADMAP.md`](../../ROADMAP.md) (M5) et [`.context/progress.md`](../../.context/progress.md).
 >
 > **Réconciliation au 2026-06-15** — depuis cette analyse :
 > - ✅ **Faits** : Master server + `modversion`, sécurité downloads, window margins (M0) ;

@@ -23,7 +23,7 @@ Ordre : **M0 → M1 → M2 → M3 → M4** (fondations) **→ M5** (features) **
 - [x] **JIT NaN fix** — vérifié **déjà présent** via upstream (`56f03bca` + `cdb374ec`)
 - [x] **Conventions dev** — `.clang-format`, `.editorconfig`, `.gitattributes`, `.gitignore`
 - [x] **Config Claude Code** — `.claude/settings.json` (allowlist + hook clang-format),
-      `.claude/agents/memory-bank-manager.md` ; dédup `.clinerules`/`.instructions.md`
+      `.claude/agents/context-manager.md` ; dédup `.clinerules`/`.instructions.md`
 - [x] **Base de connaissances** — memory bank (repo) + vault Obsidian + auto-mémoire
 - [x] **Outillage** — bear/ccache/mold/cppcheck installés, `compile_commands.json`, Context7 MCP
 - [x] **Remotes sécurisés** — push `DISABLE` sur `slim` et `upstream`
@@ -199,8 +199,30 @@ projet « le plus moderne possible » : tests, sécurité CI, build, env reprodu
 - [x] `.devcontainer/` + `Dockerfile` (toolchain one-command, miroir CI)
 - [x] `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1)
 - [x] README : badges + liens CoC/ARCHITECTURE/AUDIT
-- [x] `ARCHITECTURE.md` (promotion `memory-bank/systemPatterns.md`)
+- [x] `ARCHITECTURE.md` (promotion `.context/systemPatterns.md`)
 - [ ] *(optionnel)* `.github/FUNDING.yml` ; capture/GIF README
+
+---
+
+## M8 — Features post-v0.2.0 (nouvelles features joueurs)
+
+*Features issues du brainstorming `docs/FEATURE_IDEAS.md` (155 idées).*
+**Risque : faible** (features client-side, zéro impact protocole).
+
+### Feature #1 — Identity Switching ✅ (2026-06-15)
+- **Branche** : `feature/identity-switching`
+- **Cas d'usage** : un joueur veut se connecter sous différentes identités (nom, apparence,
+  binds textuels, tags de clan) sans tout reconfigurer à chaque fois. Mode "incognito".
+- **Commandes** : `saveidentity <name>`, `loadidentity <name>`, `listidentities`,
+  `currentidentity`, `revertidentity`
+- **Cvars** : `cl_identity` (nom du profil actif, lu au démarrage),
+  `cl_identityRules` (auto-identité par serveur : `pattern=profile; …`)
+- **Fichiers** : `identities/<name>.cfg` — profil dérivé du userinfo live (capture les cvars
+  spécifiques au mod), denylist pour les clés non-identité/sensibles
+- **Auto-identité** : `cl_identityRules` charge le bon profil à la connexion selon l'adresse du
+  serveur (tag de clan sur serveurs clan, nom casual ailleurs) ; `revertidentity` annule
+- **Compat** : ✅ 100% local (userinfo keys déjà transportées par les serveurs legacy)
+- **Statut** : ✅ Implémenté, build OK. Voir [CVARS.md](docs/CVARS.md)
 
 ---
 

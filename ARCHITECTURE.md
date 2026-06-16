@@ -30,7 +30,7 @@ Non-engine trees:
 ```
 docs/        # Reference docs (BUILD, CVARS, CREDITS, urt-features, legal/, analysis/)
 tests/       # Unit (Unity) + fuzz (libFuzzer) harness — outside code/ by design
-memory-bank/ # Project state/knowledge for maintainers (brief, progress, patterns…)
+.context/ # Project state/knowledge for maintainers (brief, progress, patterns…)
 .github/     # CI (ci.yml, release.yml, codeql.yml), dependabot, templates, CODEOWNERS
 ```
 
