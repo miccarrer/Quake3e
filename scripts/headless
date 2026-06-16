@@ -13,12 +13,16 @@
 # Two modes:
 #   server (default) — dedicated-server binary; covers qcommon subsystems
 #                      (cvars, commands, filesystem, parsing). No assets needed.
-#   client (URT_CLIENT=1) — client binary with the null renderer and sound off,
-#                      so the whole client + UI/cgame VMs run without a window.
-#                      Needs a real install in URT_BASEPATH (for the QVMs/pk3s).
+#   client (URT_CLIENT=1) — client binary with the null renderer and sound off.
+#                      By default the UI VM is skipped (cl_noUI), so the client
+#                      boots fully headless with NO game assets — covering client
+#                      subsystems (binds, client cvars, console, demo I/O).
+#                      Set URT_UI=1 to load the UI/cgame VMs instead, which needs
+#                      a real install in URT_BASEPATH.
 #
 # Environment overrides:
 #   URT_CLIENT     1 to run the client (null renderer); default 0 = dedicated
+#   URT_UI         1 to load the UI VM in client mode (needs install); default 0
 #   URT_BIN        explicit binary path (overrides mode auto-detection)
 #   URT_BASEPATH   fs_basepath  (default: tests/integration/fixtures)
 #   URT_HOMEPATH   fs_homepath  (default: a fresh temp dir, auto-removed)
@@ -72,8 +76,12 @@ common=(
 
 if [ "$client" != "0" ]; then
 	# Headless client: null renderer (no window/context), sound + mouse off.
+	# Skip the UI VM unless URT_UI=1, so the client runs without game assets.
+	noui=1
+	[ "${URT_UI:-0}" != "0" ] && noui=0
 	"$bin" \
 		+set cl_renderer null \
+		+set cl_noUI "$noui" \
 		+set s_initsound 0 \
 		+set in_mouse 0 \
 		+set com_introPlayed 1 \

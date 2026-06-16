@@ -782,6 +782,12 @@ smoke:
 	@$(MAKE) release BUILD_CLIENT=0
 	@tests/integration/run.sh "$(BR)/$(TARGET_SERVER)"
 
+# Headless client smoke test: build the client + null renderer (no heavy GL/Vulkan
+# renderers) and run the client cases with the UI VM skipped. Still install-free.
+smoke-client:
+	@$(MAKE) release BUILD_SERVER=0 USE_VULKAN=0 USE_OPENGL=0 USE_OPENGL2=0
+	@tests/integration/run.sh --client "$(BR)/$(TARGET_CLIENT)"
+
 define ADD_COPY_TARGET
 TARGETS += $2
 $2: $1
@@ -1610,5 +1616,5 @@ ifneq ($(strip $(D_FILES)),)
 endif
 
 .PHONY: all clean clean2 clean-debug clean-release copyfiles \
-	debug default dist distclean makedirs release smoke \
+	debug default dist distclean makedirs release smoke smoke-client \
 	targets tools toolsclean

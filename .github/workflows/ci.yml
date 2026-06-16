@@ -124,8 +124,12 @@ jobs:
           key: smoke-${{ github.job }}
       # Builds the dedicated server and runs the assert-driven .cfg suite headless
       # against the in-repo fixture (no game install / pk3s required).
-      - name: Headless smoke tests
+      - name: Headless server smoke tests
         run: make smoke CC="ccache gcc"
+      # Builds the client + null renderer and runs the client cases with the UI VM
+      # skipped — still install-free, covering client-only subsystems.
+      - name: Headless client smoke tests
+        run: make smoke-client CC="ccache gcc"
 
   fuzz-smoke:
     name: fuzz smoke (libFuzzer)
