@@ -4898,8 +4898,14 @@ static void FS_Startup( void ) {
 	// downloaded paks are stored in <downloadRoot>/<gamedir>/download (kept apart
 	// from the rest of the game dir, and shareable across clients via
 	// fs_downloadpath); register that dir so they load after FS_Restart.
+	// FS_AddGameDirectory overwrites fs_gamedir with its dir argument, so save
+	// and restore it — otherwise every subsequent write (config, identities,
+	// demos, screenshots) would land under <gamedir>/download.
 	if ( FS_DownloadRoot()[0] ) {
+		char savedGamedir[sizeof( fs_gamedir )];
+		Q_strncpyz( savedGamedir, fs_gamedir, sizeof( savedGamedir ) );
 		FS_AddGameDirectory( FS_DownloadRoot(), va( "%s/download", FS_GetCurrentGameDir() ) );
+		Q_strncpyz( fs_gamedir, savedGamedir, sizeof( fs_gamedir ) );
 	}
 
 	// check for additional game folder for mods
