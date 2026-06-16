@@ -1,7 +1,30 @@
 # Active Context — Urban Terror Optimized
 
 ## Dernière mise à jour
-2026-06-16 — Session 6 : feature « Identity Switching » (#1) ✅ MERGÉE sur main (PR #20) + ménage branches
+2026-06-16 — Session 7 : feature #2 « download dir + fs_downloadpath » implémentée (build OK, à tester en jeu)
+
+## Feature #2 : Dossier de download `q3ut4/download` + `fs_downloadpath` ✅ (build OK)
+
+**Branche** : `feature/fs-downloadpath` (1 commit `8bb05a5e`, **non poussé**, working tree propre)
+
+**Objectif** : ranger les paks téléchargés dans `<root>/q3ut4/download/` (pas mélangés au game dir →
+backup/symlink) + cvar `fs_downloadpath` (racine configurable) pour partager un cache de download
+entre installs à homepaths distincts (cas d'usage réel de l'utilisateur : 2 clients, homepaths séparés).
+
+**Origine** : réimplémentation propre des commits slim `f92d24af` + `99f6edbb` (corrige fuite
+`CopyString`, taille buffer `Com_sprintf`, incohérence write/read gamedir) + ajout racine configurable.
+Couvre UDP + HTTP/cURL.
+
+**Fichiers** : `files.c` (cvar + `FS_DownloadRoot` + helpers `FS_Download_*` via base-param + search dir
+dans `FS_Startup`), `qcommon.h` (protos), `cl_main.c` (`CL_NextDownload` réécrit le localName + checksum),
+`cl_parse.c` (UDP), `cl_curl.c` (cURL + dlmap). Docs : CVARS, urt-features, CHANGELOG, ROADMAP (#2), slim-comparison.
+
+**Reste à faire** : push + PR + **test en jeu** (2 clients pour valider le partage).
+**⚠️ Point de test n°1** : serveur **pure** — un pak en gamedir `q3ut4/download` est référencé comme
+`q3ut4/download/foo` (`FS_ReferencedPakNames`). La pureté étant par **checksum**, ça devrait passer
+(slim l'a en prod), mais à confirmer (risque de kick si un serveur valide les *noms*).
+
+---
 
 ## Feature terminée : Identity Switching (#1) ✅ MERGÉE
 
