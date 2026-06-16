@@ -1,11 +1,13 @@
 # Active Context — Urban Terror Optimized
 
 ## Dernière mise à jour
-2026-06-16 — Session 6 : feature « Identity Switching » (#1) ✅ commitée + doc réalignée
+2026-06-16 — Session 6 : feature « Identity Switching » (#1) ✅ MERGÉE sur main (PR #20) + ménage branches
 
-## Feature terminée : Identity Switching (#1) ✅
+## Feature terminée : Identity Switching (#1) ✅ MERGÉE
 
-**Branche** : `feature/identity-switching` (5 commits **locaux non poussés** ; working tree propre)
+**PR #20 mergée sur `main`** (`bfc4ff5f`). Branche `feature/identity-switching` supprimée.
+Le rename `memory-bank/ → .context/` est arrivé sur main via cette PR. **Reste : test en jeu.**
+Ménage effectué : 13 branches locales obsolètes supprimées ; ne restent que `main`.
 
 **Objectif** : Permettre aux joueurs de switcher d'identité (nom, apparence, tags de clan) sans
 toucher aux réglages de jeu (graphismes, réseau, etc.).
