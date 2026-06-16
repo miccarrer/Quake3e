@@ -50,7 +50,6 @@ gameplay settings. Profiles are stored as `identities/<name>.cfg`.
 | Cvar | Default | Description |
 |------|:-------:|-------------|
 | `cl_identity` | `` | Name of the currently-loaded identity profile (auto-loaded at startup) |
-| `cl_nameRotate` | `` | Semicolon-separated list of names; on each `connect`, the next name is selected cyclically (anti-tracking) |
 
 ### Commands
 
@@ -58,13 +57,30 @@ gameplay settings. Profiles are stored as `identities/<name>.cfg`.
 |---------|-------------|
 | `saveidentity <name>` | Save current identity cvars to `identities/<name>.cfg` |
 | `loadidentity <name>` | Load identity from `identities/<name>.cfg` and set `cl_identity` |
-| `listidentities` | List all available identity profiles |
+| `listidentities` | List all available profiles, with a name/model preview |
 
-### Identity cvars saved
+### Which cvars are saved
 
-The following userinfo cvars are included in a saved identity: `name`, `model`,
-`headmodel`, `team_model`, `team_headmodel`, `sex`, `color1`, `color2`,
-`handicap`, `cl_anonymous`.
+A profile is derived from the **live userinfo string** rather than a fixed list,
+so it captures whatever `CVAR_USERINFO` cvars are active — including the ones the
+mod (q3ut4) adds — without any list to maintain. Keys that are not part of a
+player's identity are excluded: `rate`, `snaps`, `teamtask`, `cg_predictItems`,
+`password`, `cl_guid`, `ip`.
+
+### Note — shared storage with `q3config.cfg`
+
+Profiles are written with `seta`, so identity cvars live in the **same archived
+storage** as your main `q3config.cfg`. Two consequences:
+
+- `loadidentity` overwrites the matching keys (`name`, `model`, …) in the main
+  config the next time the config is saved — it is not a temporary overlay.
+- If `cl_identity` is set, that profile is **auto-loaded at startup**, which can
+  override a name/model you changed by hand in a previous session. Clear
+  `cl_identity` (or re-save the profile) if you want manual changes to stick.
+
+> Identity switching does **not** defeat server-side tracking: Urban Terror
+> identifies players by `cl_guid` (derived from your qkey), not by name. Profiles
+> are a convenience for managing your in-game appearance, nothing more.
 
 ---
 

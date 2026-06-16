@@ -74,8 +74,6 @@ cvar_t	*cl_reconnectArgs;
 
 // identity switching
 cvar_t *cl_identity;
-cvar_t *cl_nameRotate;
-static int nameRotateIndex = 0;
 
 // common cvars for GLimp modules
 cvar_t	*vid_xpos;			// X coordinate of window position
@@ -155,7 +153,6 @@ static void CL_Ping_f( void );
 static void CL_InitRef( void );
 static void CL_ShutdownRef( refShutdownCode_t code );
 static void CL_InitGLimp_Cvars( void );
-static void CL_NameRotate( void );
 
 static void CL_NextDemo( void );
 
@@ -1637,9 +1634,6 @@ static void CL_Connect_f( void ) {
 	noGameRestart = qtrue;
 	CL_Disconnect( qtrue );
 	Con_Close();
-
-	// rotate player name if cl_nameRotate is set
-	CL_NameRotate();
 
 	Q_strncpyz( cls.servername, server, sizeof( cls.servername ) );
 
@@ -3582,26 +3576,47 @@ static void CL_InitRef( void ) {
 /*
 Identity switching
 
-Allows the player to save/load named identity profiles containing
-userinfo cvars (name, model, colors, etc.) and optionally rotate
-through a list of names on each connect.
+Allows the player to save/load named identity profiles containing the
+userinfo cvars that describe a player (name, model, colors, and any
+CVAR_USERINFO cvars the mod adds — e.g. q3ut4's own appearance cvars).
+
+A profile is derived from the live userinfo string rather than a fixed
+cvar list, so it captures mod-specific identity cvars automatically.
 
 Files are stored as   identities/<name>.cfg   in the home game dir.
-*/
 
-// cvars whose values make up a saved identity profile
-static const char *const identity_cvars[] = {
-    "name",
-    "model",
-    "headmodel",
-    "team_model",
-    "team_headmodel",
-    "sex",
-    "color1",
-    "color2",
-    "handicap",
-    "cl_anonymous",
+NOTE: profiles are written with "seta", so loading one overwrites the
+matching keys in q3config.cfg on next config save. Identity cvars and
+the main config share the same archived storage — see docs/CVARS.md.
+
+The denylist below holds CVAR_USERINFO cvars that are NOT part of a
+player's identity (connection tuning, secrets, or engine-owned values)
+and must never be written to a profile.
+*/
+static const char *const identity_cvar_denylist[] = {
+    "rate",            // connection tuning, not identity
+    "snaps",           // connection tuning, not identity
+    "teamtask",        // transient gameplay state
+    "cg_predictItems", // prediction preference, not identity
+    "password",        // secret, must never be saved
+    "cl_guid",         // engine-owned (CVAR_ROM), tied to the qkey
+    "ip",              // set by the server
     NULL };
+
+/*
+CL_IdentityCvarDenied
+
+Returns qtrue if a userinfo key must not be saved into a profile.
+*/
+static qboolean CL_IdentityCvarDenied( const char *key ) {
+	int i;
+
+	for ( i = 0; identity_cvar_denylist[i]; i++ ) {
+		if ( !Q_stricmp( key, identity_cvar_denylist[i] ) )
+			return qtrue;
+	}
+	return qfalse;
+}
 
 /*
 CL_ValidIdentityName
@@ -3638,7 +3653,10 @@ identities/<name>.cfg
 static void CL_SaveIdentity_f( void ) {
 	char filename[MAX_OSPATH];
 	fileHandle_t f;
-	int i;
+	const char *info;
+	char key[BIG_INFO_KEY];
+	char value[BIG_INFO_VALUE];
+	int count;
 
 	if ( Cmd_Argc() != 2 ) {
 		Com_Printf( "Usage: saveidentity <name>\n" );
@@ -3660,21 +3678,23 @@ static void CL_SaveIdentity_f( void ) {
 
 	FS_Printf( f, "// identity profile: %s" Q_NEWLINE, Cmd_Argv( 1 ) );
 
-	for ( i = 0; identity_cvars[i]; i++ ) {
-		const char *val;
-		char buf[MAX_CVAR_VALUE_STRING];
-
-		Cvar_VariableStringBuffer( identity_cvars[i], buf, sizeof( buf ) );
-		val = buf;
-		// skip empty password-like values
-		if ( !val[0] && !Q_stricmp( identity_cvars[i], "cl_anonymous" ) )
-			val = "0";
-		FS_Printf( f, "seta %s \"%s\"" Q_NEWLINE, identity_cvars[i], val );
-	}
+	// derive the profile from the live userinfo string so mod-specific
+	// CVAR_USERINFO cvars are captured automatically; drop denied keys.
+	info = Cvar_InfoString( CVAR_USERINFO, NULL );
+	count = 0;
+	do {
+		info = Info_NextPair( info, key, value );
+		if ( key[0] == '\0' )
+			break;
+		if ( CL_IdentityCvarDenied( key ) )
+			continue;
+		FS_Printf( f, "seta %s \"%s\"" Q_NEWLINE, key, value );
+		count++;
+	} while ( *info != '\0' );
 
 	FS_FCloseFile( f );
 
-	Com_Printf( "Saved identity '%s' to %s\n", Cmd_Argv( 1 ), filename );
+	Com_Printf( "Saved identity '%s' (%i cvars) to %s\n", Cmd_Argv( 1 ), count, filename );
 }
 
 /*
@@ -3715,11 +3735,42 @@ static void CL_LoadIdentity_f( void ) {
 }
 
 /*
+CL_IdentityProfileCvar
+
+Extracts the value of a "seta <key> ..." line from a saved identity
+profile's text into out. Returns qtrue if the key was found.
+*/
+static qboolean CL_IdentityProfileCvar( const char *text, const char *wantKey, char *out, int outSize ) {
+	const char *p = text;
+
+	out[0] = '\0';
+	while ( *p ) {
+		const char *tok = COM_ParseExt( &p, qtrue );
+		if ( !tok[0] )
+			break;
+		if ( Q_stricmp( tok, "seta" ) != 0 )
+			continue;
+		// next token is the key, the one after is the value
+		{
+			char keyBuf[MAX_TOKEN_CHARS];
+			Q_strncpyz( keyBuf, COM_ParseExt( &p, qfalse ), sizeof( keyBuf ) );
+			tok = COM_ParseExt( &p, qfalse );
+			if ( !Q_stricmp( keyBuf, wantKey ) ) {
+				Q_strncpyz( out, tok, outSize );
+				return qtrue;
+			}
+		}
+	}
+	return qfalse;
+}
+
+/*
 CL_ListIdentities_f
 
 listidentities
 
-Lists all .cfg files in the identities/ directory.
+Lists all .cfg files in the identities/ directory, with a name/model
+preview parsed from each profile.
 */
 static void CL_ListIdentities_f( void ) {
 	char listbuf[4096];
@@ -3739,11 +3790,28 @@ static void CL_ListIdentities_f( void ) {
 	ptr = listbuf;
 	while ( *ptr ) {
 		int len = strlen( ptr );
-		// strip .cfg extension for display
-		if ( len > 4 && !Q_stricmp( ptr + len - 4, ".cfg" ) )
-			Com_Printf( "  %.*s\n", len - 4, ptr );
+		int baseLen = ( len > 4 && !Q_stricmp( ptr + len - 4, ".cfg" ) ) ? len - 4 : len;
+		char filename[MAX_OSPATH];
+		char nameVal[MAX_NAME_LENGTH];
+		char modelVal[MAX_CVAR_VALUE_STRING];
+		void *fileText;
+
+		nameVal[0] = '\0';
+		modelVal[0] = '\0';
+
+		Com_sprintf( filename, sizeof( filename ), "identities/%s", ptr );
+		if ( FS_ReadFile( filename, &fileText ) > 0 && fileText ) {
+			CL_IdentityProfileCvar( (const char *)fileText, "name", nameVal, sizeof( nameVal ) );
+			CL_IdentityProfileCvar( (const char *)fileText, "model", modelVal, sizeof( modelVal ) );
+			FS_FreeFile( fileText );
+		}
+
+		if ( nameVal[0] || modelVal[0] )
+			Com_Printf( "  %.*s  " S_COLOR_WHITE "(name: %s, model: %s)\n",
+			            baseLen, ptr, nameVal[0] ? nameVal : "?", modelVal[0] ? modelVal : "?" );
 		else
-			Com_Printf( "  %s\n", ptr );
+			Com_Printf( "  %.*s\n", baseLen, ptr );
+
 		ptr += len + 1;
 	}
 }
@@ -3757,63 +3825,6 @@ static void CL_CompleteIdentityName( const char *args, int argNum ) {
 	if ( argNum == 2 ) {
 		Field_CompleteFilename( "identities", ".cfg", qtrue, FS_MATCH_EXTERN | FS_MATCH_STICK );
 	}
-}
-
-/*
-CL_NameRotate
-
-If cl_nameRotate is non-empty, pick the next name in the
-semicolon-separated list and set the "name" cvar.  Called from
-CL_Connect_f so the name changes before the userinfo is sent.
-*/
-static void CL_NameRotate( void ) {
-	char rotateStr[MAX_STRING_CHARS];
-	char name[MAX_NAME_LENGTH];
-	char *token;
-	int i;
-	int count;
-
-	if ( !cl_nameRotate || !cl_nameRotate->string[0] )
-		return;
-
-	Q_strncpyz( rotateStr, cl_nameRotate->string, sizeof( rotateStr ) );
-
-	// count entries
-	count = 1;
-	for ( i = 0; rotateStr[i]; i++ )
-		if ( rotateStr[i] == ';' )
-			count++;
-
-	if ( count == 0 )
-		return;
-
-	// advance index
-	nameRotateIndex = ( nameRotateIndex ) % count;
-
-	// extract the Nth token
-	i = 0;
-	token = strtok( rotateStr, ";" );
-	while ( token && i < nameRotateIndex ) {
-		token = strtok( NULL, ";" );
-		i++;
-	}
-
-	if ( token && token[0] ) {
-		// strip leading and trailing whitespace
-		int end;
-		while ( *token == ' ' || *token == '\t' )
-			token++;
-		Q_strncpyz( name, token, sizeof( name ) );
-		end = strlen( name );
-		while ( end > 0 && ( name[end - 1] == ' ' || name[end - 1] == '\t' ) )
-			name[--end] = '\0';
-		if ( name[0] ) {
-			Cvar_Set( "name", name );
-			Com_DPrintf( "name_rotate: set name to '%s' (index %d/%d)\n", name, nameRotateIndex + 1, count );
-		}
-	}
-
-	nameRotateIndex++;
 }
 
 static void CL_SetModel_f( void ) {
@@ -4322,8 +4333,6 @@ void CL_Init( void ) {
 	// identity switching
 	cl_identity = Cvar_Get( "cl_identity", "", CVAR_ARCHIVE_ND );
 	Cvar_SetDescription( cl_identity, "Name of the currently-loaded identity profile (for saveidentity/loadidentity)." );
-	cl_nameRotate = Cvar_Get( "cl_nameRotate", "", CVAR_ARCHIVE_ND );
-	Cvar_SetDescription( cl_nameRotate, "Semicolon-separated list of player names. On each connect, the next name is selected cyclically." );
 
 	// cgame might not be initialized before menu is used
 	Cvar_Get ("cg_viewsize", "100", CVAR_ARCHIVE_ND );
