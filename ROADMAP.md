@@ -213,10 +213,14 @@ projet « le plus moderne possible » : tests, sécurité CI, build, env reprodu
 - **Branche** : `feature/identity-switching`
 - **Cas d'usage** : un joueur veut se connecter sous différentes identités (nom, apparence,
   binds textuels, tags de clan) sans tout reconfigurer à chaque fois. Mode "incognito".
-- **Commandes** : `saveidentity <name>`, `loadidentity <name>`, `listidentities`
-- **Cvars** : `cl_identity` (nom du profil actif, lu au démarrage), `cl_nameRotate`
-- **Fichiers** : `identities/<name>.cfg` — .cfg sélectif (identité uniquement)
-- **Bonus** : `cl_nameRotate` — cycle automatique de noms à chaque connexion (anti-tracking)
+- **Commandes** : `saveidentity <name>`, `loadidentity <name>`, `listidentities`,
+  `currentidentity`, `revertidentity`
+- **Cvars** : `cl_identity` (nom du profil actif, lu au démarrage),
+  `cl_identityRules` (auto-identité par serveur : `pattern=profile; …`)
+- **Fichiers** : `identities/<name>.cfg` — profil dérivé du userinfo live (capture les cvars
+  spécifiques au mod), denylist pour les clés non-identité/sensibles
+- **Auto-identité** : `cl_identityRules` charge le bon profil à la connexion selon l'adresse du
+  serveur (tag de clan sur serveurs clan, nom casual ailleurs) ; `revertidentity` annule
 - **Compat** : ✅ 100% local (userinfo keys déjà transportées par les serveurs legacy)
 - **Statut** : ✅ Implémenté, build OK. Voir [CVARS.md](docs/CVARS.md)
 

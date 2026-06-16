@@ -11,9 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   frag and chat lines are routed to their tabs while everything is logged to All. Switch with the
   mouse buttons or shift+left/right; `con_tabs` cvar + `con_nexttab` / `con_prevtab` commands.
 - Identity switching: save and load named player-identity profiles (name, model, colors, etc.)
-  with `saveidentity` / `loadidentity` / `listidentities`. The active profile (`cl_identity`) is
-  auto-loaded at startup. Bonus: `cl_nameRotate` cycles through a list of names on each `connect`
-  for light anti-tracking.
+  with `saveidentity` / `loadidentity` / `listidentities`. Profiles are derived from the live
+  userinfo (capturing mod-specific cvars) with a denylist for non-identity/sensitive keys. The
+  active profile (`cl_identity`) is auto-loaded at startup; `currentidentity` reports it and any
+  drift, `revertidentity` is a one-level session undo. Per-server auto-identity via
+  `cl_identityRules` (`pattern=profile`) auto-loads the matching profile on connect.
 
 ## [0.2.0] - 2026-06-15
 

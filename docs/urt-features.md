@@ -28,8 +28,9 @@ Features specific to Urban Terror Optimized, beyond the stock Quake3e / ioquake3
 - **Identity switching** — save and load named identity profiles (`saveidentity` /
   `loadidentity` / `listidentities`) containing only your player-identity cvars (name, model,
   colors, etc.) without touching gameplay settings. The active profile (`cl_identity`) is
-  auto-loaded at startup. Bonus: `cl_nameRotate` cycles through a list of names on each connect
-  for light anti-tracking. See [CVARS.md](CVARS.md).
+  auto-loaded at startup; `currentidentity` shows it and any drift, `revertidentity` undoes the
+  last load. Per-server auto-identity via `cl_identityRules` (`pattern=profile`) picks the right
+  profile on connect — clan tag on clan servers, casual name elsewhere. See [CVARS.md](CVARS.md).
 
 ## Planned (M5 — see [ROADMAP.md](../ROADMAP.md))
 
