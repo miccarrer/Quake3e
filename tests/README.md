@@ -3,7 +3,9 @@
 Standalone test harness, deliberately kept **outside `code/`** so the engine tree
 stays aligned with `ec-/Quake3e` upstream (preserves cherry-picking). It compiles
 individual, dependency-light `qcommon` translation units against the
-[Unity](https://github.com/ThrowTheSwitch/Unity) framework and libFuzzer.
+[Unity](https://github.com/ThrowTheSwitch/Unity) framework and libFuzzer, plus
+**headless integration tests** that drive the dedicated server through `.cfg`
+scripts (see `integration/README.md`).
 
 ## Layout
 
@@ -15,9 +17,13 @@ tests/
 │   └── vendor/unity/         # vendored Unity 2.6.x (3 files)
 ├── support/
 │   └── stubs.c               # Com_Error/Com_Printf stubs for linking q_shared.c
-└── fuzz/
-    ├── fuzz_info.c           # libFuzzer target: userinfo parsers (q_shared.c)
-    └── corpus/info/          # seed inputs
+├── fuzz/
+│   ├── fuzz_info.c           # libFuzzer target: userinfo parsers (q_shared.c)
+│   └── corpus/info/          # seed inputs
+└── integration/             # headless runtime tests (drive the dedicated server)
+    ├── run.sh                # runner: exec each case, exit code = verdict
+    ├── fixtures/q3ut4/       # minimal default.cfg so the server boots paklessly
+    └── cases/*.cfg           # assert-driven scripts (see integration/README.md)
 ```
 
 ## Running
@@ -27,6 +33,8 @@ make -C tests                 # build + run unit tests (ASan/UBSan)
 make -C tests fuzz CC=clang   # build the libFuzzer target (clang required)
 ./tests/build/fuzz_info -runs=200000 tests/fuzz/corpus/info
 make -C tests clean
+
+make smoke                    # (repo root) build the server + run integration tests
 ```
 
 ## Adding tests
@@ -38,5 +46,8 @@ make -C tests clean
 - **Fuzz**: each target defines `LLVMFuzzerTestOneInput`. Arm `com_error_ready` +
   `setjmp(com_error_jmp)` so a legitimately-rejected input is not flagged as a crash.
   Commit a small seed corpus.
+- **Integration**: drop a `cases/<name>.cfg` ending in `quit` that asserts engine
+  behaviour via the `assert` / `assert_cvar` commands. See `integration/README.md`.
 
-CI runs the unit tests and a short fuzzing smoke run on every PR (see `.github/workflows/ci.yml`).
+CI runs the unit tests, a short fuzzing smoke run, and the headless integration
+tests on every PR (see `.github/workflows/ci.yml`).

@@ -318,19 +318,17 @@ timestamps = sortie « golden » comparable au byte près.
 
 ### Tier 1 — headless + runner (le vrai déblocage)
 
-**Run headless (client sans GPU/écran/son)** 🆕
-Le moteur honore déjà `SDL_VIDEODRIVER=dummy`/`SDL_AUDIODRIVER=dummy` (il lit
-`SDL_GetCurrentVideoDriver` sans forcer le driver) ; le serveur dédié (`com_dedicated`) tourne
-déjà headless. Manque pour le **client** complet : un **null renderer** + null sound (GL/Vulkan
-échoue sous `dummy`).
-- Chemin pas cher : wrapper `scripts/headless` (env dummy) → débloque tout le non-rendu
-  (cvars, cmd, fs, parse, alias, démo metadata…).
-- Chemin complet : stub `renderer_null` (difficulté moyenne) → pipeline parse/démo/réseau en CI.
+**Run headless (chemin pas cher)** ✅ livré
+Wrapper `scripts/headless` (env SDL `dummy` + cvars `dedicated 1`/`net_enabled 0`/
+`com_logTimestamps 0` + homepath temporaire isolé) → débloque tout le non-rendu via le serveur
+dédié (cvars, cmd, fs, parse, alias…) sans install ni pk3.
+- **Reste à faire (chemin complet)** : stub `renderer_null` + null sound (difficulté moyenne)
+  pour exercer le **client** (pipeline parse/démo/réseau) sous `dummy` — GL/Vulkan échoue sinon.
 
-**Runner d'intégration `tests/integration/*.cfg` + `make smoke`** 🆕
-Scripts `.cfg` pilotés par le binaire headless, auto-vérifiés via `assert` + code de sortie.
-Étend l'infra `tests/` (déjà hors `code/` pour préserver l'alignement upstream — cf.
-`tests/README.md`). Cible `make smoke` = build + self-tests = oracle « ai-je cassé quelque chose ».
+**Runner d'intégration `tests/integration/*.cfg` + `make smoke`** ✅ livré
+Scripts `.cfg` auto-vérifiés via `assert` + code de sortie, bootés sur un fixture minimal
+(`tests/integration/fixtures/q3ut4/default.cfg`, pas d'install requise). `make smoke` = build
+serveur + suite ; câblé en CI (job `integration`). Oracle « ai-je cassé quelque chose ».
 
 ### Tier 2 — sortie lisible par machine
 
