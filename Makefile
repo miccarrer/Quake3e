@@ -767,6 +767,12 @@ debug:
 release:
 	@$(MAKE) targets B=$(BR) CFLAGS="$(CFLAGS) $(RELEASE_CFLAGS) $(EXTRA_CFLAGS)" V=$(V)
 
+# Headless integration smoke test: build just the dedicated server and run the
+# assert-driven .cfg suite in tests/integration/ (no game install / pk3s needed).
+smoke:
+	@$(MAKE) release BUILD_CLIENT=0
+	@tests/integration/run.sh "$(BR)/$(TARGET_SERVER)"
+
 define ADD_COPY_TARGET
 TARGETS += $2
 $2: $1
@@ -1578,5 +1584,5 @@ ifneq ($(strip $(D_FILES)),)
 endif
 
 .PHONY: all clean clean2 clean-debug clean-release copyfiles \
-	debug default dist distclean makedirs release \
+	debug default dist distclean makedirs release smoke \
 	targets tools toolsclean

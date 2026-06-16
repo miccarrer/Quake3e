@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+#
+# Launch an Urban Terror Optimized binary in headless mode and forward console
+# commands to it. Closes the runtime feedback loop for CI / agent-driven tests:
+# combine with the Tier-0 "assert" / "quit <code>" commands to get a process
+# exit code that reflects pass/fail.
+#
+#   scripts/headless +assert 1 == 1 +quit
+#   scripts/headless +exec mytest.cfg +quit
+#
+# Environment overrides:
+#   URT_BIN        binary to run (default: newest build/release-*/*.ded.* )
+#   URT_BASEPATH   fs_basepath  (default: tests/integration/fixtures)
+#   URT_HOMEPATH   fs_homepath  (default: a fresh temp dir, auto-removed)
+#   URT_NET        1 to keep networking on (default: 0, no sockets bound)
+#
+# The dummy SDL drivers let the (future) client renderer/audio init headless;
+# they are harmless for the dedicated-server binary, which uses neither.
+
+set -euo pipefail
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+root="$(cd "$here/.." && pwd)"
+
+# Locate the binary: explicit URT_BIN, else newest dedicated build artifact.
+bin="${URT_BIN:-}"
+if [ -z "$bin" ]; then
+	bin="$(ls -t "$root"/build/release-*/*.ded.* 2>/dev/null | grep -v '\.d$' | head -n1 || true)"
+fi
+if [ -z "$bin" ] || [ ! -x "$bin" ]; then
+	echo "headless: no runnable binary found (set URT_BIN or run 'make')" >&2
+	exit 127
+fi
+
+basepath="${URT_BASEPATH:-$root/tests/integration/fixtures}"
+
+# Provide an isolated, disposable homepath unless the caller pins one.
+cleanup=""
+homepath="${URT_HOMEPATH:-}"
+if [ -z "$homepath" ]; then
+	homepath="$(mktemp -d)"
+	cleanup="$homepath"
+fi
+trap '[ -n "$cleanup" ] && rm -rf "$cleanup"' EXIT
+
+net="${URT_NET:-0}"
+
+export SDL_VIDEODRIVER="${SDL_VIDEODRIVER:-dummy}"
+export SDL_AUDIODRIVER="${SDL_AUDIODRIVER:-dummy}"
+
+"$bin" \
+	+set dedicated 1 \
+	+set net_enabled "$net" \
+	+set com_logTimestamps 0 \
+	+set fs_basepath "$basepath" \
+	+set fs_homepath "$homepath" \
+	"$@"
