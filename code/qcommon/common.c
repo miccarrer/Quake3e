@@ -224,18 +224,18 @@ void FORMAT_PRINTF(1, 2) QDECL Com_Printf( const char *fmt, ... ) {
 				logfile = FS_FOpenFileWrite( logName );
 
 			if ( logfile != FS_INVALID_HANDLE ) {
+				struct tm *newtime;
+				time_t aclock;
+				char timestr[32];
+
+				time( &aclock );
+				newtime = localtime( &aclock );
+				strftime( timestr, sizeof( timestr ), "%a %b %d %X %Y", newtime );
+
 				// deterministic mode: omit the wall-clock date so logs are byte-diffable
 				if ( com_logTimestamps && !com_logTimestamps->integer ) {
 					Com_Printf( "logfile opened\n" );
 				} else {
-					struct tm *newtime;
-					time_t aclock;
-					char timestr[32];
-
-					time( &aclock );
-					newtime = localtime( &aclock );
-					strftime( timestr, sizeof( timestr ), "%a %b %d %X %Y", newtime );
-
 					Com_Printf( "logfile opened on %s\n", timestr );
 				}
 
