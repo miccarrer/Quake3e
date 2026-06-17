@@ -173,6 +173,21 @@ cm360                 # -> "30.00 cm/360 (sensitivity ..., m_dpi 800, m_yaw 0.02
 To match another game, read its cm/360 (e.g. from its own converter) and pass it to
 `cm360` here — identical cm/360 means identical aim distance.
 
+> **Troubleshooting — `cm360` disagrees with what you feel in-game.** The formula is
+> only as right as `m_dpi`. If a 360 *feels* like (say) half the cm/360 that `cm360`
+> reports, your mouse's **real** DPI is probably not what you set in `m_dpi`. This is
+> common: many gaming mice store DPI presets in onboard memory and switch them with a
+> **DPI-shift button**, while tools like Piper / libratbag keep showing a *configured*
+> value the mouse isn't actually using (e.g. a `(disabled)` profile). Verify the
+> **hardware** DPI rather than trusting the configurator:
+> ```
+> # read raw kernel counts while you move the mouse a known distance:
+> sudo libinput debug-events --show-keycodes   # watch the REL_X deltas
+> # counts per cm ÷ 2.54 = real DPI. Set m_dpi to that (or fix the mouse preset).
+> ```
+> Set `m_dpi` to the **effective** DPI the mouse really emits and `cm360` will match
+> the feel exactly.
+
 ---
 
 *Remaining M5 features (UrT demo) are tracked in [ROADMAP.md](../ROADMAP.md).*
