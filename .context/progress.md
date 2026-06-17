@@ -2,11 +2,16 @@
 
 ## État global du projet
 
-**Milestone actuel** : **`cm360` livré + diagnostic DPND** (session 10, 2026-06-17). Convertisseur
-`cm360` mergé (PR #25) ; écart 2× ressenti → **aucun bug moteur** (souris G305 réellement à 1600 DPI,
-Piper affichait 800 / profil non appliqué). Note troubleshooting docs (PR #26, ouverte). Précédemment :
-harnais de test headless (session 9, mergé via PR #24). Fondations M0–M4 terminées ; M5 partiel ;
-M6 (release v0.2.0) publiée ; M7 terminé ; Feature #1 (identity) mergée PR #20.
+**Milestone actuel** : **police des onglets de console** (`con_tabScale`, session 11, 2026-06-17,
+PR #27 mergée). La console à onglets elle-même était déjà livrée (PR #19). Précédemment : `cm360`
+(session 10, PR #25/#26) ; harnais de test headless (session 9, PR #24). Fondations M0–M4 terminées ;
+M5 partiel ; M6 (release v0.2.0) publiée ; M7 terminé ; Feature #1 (identity) mergée PR #20.
+
+**Session 11 (2026-06-17) — police des onglets** : la tabbed-console était déjà mergée (PR #19) ;
+seule la taille des titres restait. Ajout cvar `con_tabScale` (défaut 1.25, range 1.0–3.0) + helper
+`Con_DrawScaledChar` (`cl_console.c`), doc CVARS.md. **Saga CodeQL** : 4 clamps n'ont pas satisfait
+`cpp/uncontrolled-arithmetic` (query bruyante, valeurs bornées, aucun overflow réel) → 3 alertes
+dismissées en FP (consignées `docs/security-triage.md`). PR #27 mergée. Détails § `activeContext.md` Session 11.
 
 **Session 10 (2026-06-17) — `cm360` + diagnostic DPI** : commande `cm360` (sensitivity ↔ cm/360) +
 cvar `m_dpi` livrés (PR #25 mergée). Écart 2× signalé (cm360 51.95 cm vs ~26 cm ressenti) → diagnostic
@@ -32,6 +37,15 @@ preview `listidentities` sans `model`, doc « sauver connecté en jeu » + note 
 ---
 
 ## ✅ Terminé
+
+### Session 11 — Police des onglets de console (2026-06-17) ← PR #27 (mergée)
+- [x] **`con_tabScale`** : cvar taille des titres d'onglets (défaut 1.25, range 1.0–3.0,
+      `CVAR_ARCHIVE_ND`) + helper `Con_DrawScaledChar` (`cl_console.c`) ; doc `docs/CVARS.md`
+- [x] **Constat** : tabbed-console déjà livrée (PR #19) — seule la police restait à régler
+- [x] **CodeQL** : 4 itérations de clamps (haute/longueur/fermé [1,256]) ; query `uncontrolled-arithmetic`
+      non satisfaite malgré valeurs bornées → 3 alertes **dismissées FP** (consigné `docs/security-triage.md`)
+- [x] **Ménage** : branches locales mergées supprimées (`docs/cm360-dpi-tip`, `feature/tab-title-font`)
+- [ ] **Restant utilisateur** : `git push origin main` (context+triage) ; supprimer remote `feature/tab-title-font`
 
 ### Session 10 — `cm360` + diagnostic écart DPI (2026-06-17) ← PR #25 (mergée), PR #26 (docs)
 - [x] **Feature `cm360`** : commande convertisseur `sensitivity` ↔ cm/360 + cvar `m_dpi` (`cl_input.c`),

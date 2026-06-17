@@ -1,7 +1,39 @@
 # Active Context — Urban Terror Optimized
 
 ## Dernière mise à jour
-2026-06-17 — Session 10 : **convertisseur `cm360`** (PR #25 mergée) + **diagnostic d'un écart 2× ressenti in-game**. Verdict : **aucun bug moteur** — la souris (Logitech G305) tournait physiquement à **1600 DPI** (preset onboard via bouton DPI-shift), alors que Piper/libratbag affichaient 800 (profil `(disabled)`, non appliqué). Math `cm360`, chemin SDL et evdev tous corrects. Note de troubleshooting ajoutée (`docs/CVARS.md`, PR #26). Ménage branches : 3 locales mergées supprimées ; 16 remotes mergées à supprimer (commande fournie à l'utilisateur).
+2026-06-17 — Session 11 : **taille de police des onglets de console** (`con_tabScale`, PR #27 mergée). La feature **console à onglets était déjà mergée** (PR #19) — seule la taille des titres restait à régler. Ajout cvar `con_tabScale` (défaut **1.25**, range 1.0–3.0) + helper `Con_DrawScaledChar`. **Saga CodeQL** : 4 itérations de clamps n'ont pas satisfait `cpp/uncontrolled-arithmetic` (query bruyante, valeurs pourtant bornées) → **3 alertes dismissées en FP** (politique `docs/security-triage.md`, consignées). Clamps défensifs gardés. Ménage : branches locales mergées supprimées.
+
+## Session 11 : police des onglets de console (`con_tabScale`)
+
+**Branche** : `feature/tab-title-font` (PR #27 **mergée**, `7dc8e018`).
+
+**Contexte** : l'utilisateur demandait « que manque-t-il pour finir tabbed-console ? ». Réponse :
+**rien** — la console à onglets est livrée et mergée depuis **PR #19** (`895d66d1`). La branche
+`feature/tabbed-console` restante était stale (réutilisée pour un chore de rename). Seul besoin réel :
+agrandir un peu la police des **titres d'onglets**.
+
+**Livré** :
+- `Con_DrawScaledChar( x, y, w, h, ch )` dans `cl_console.c` — dessine un glyphe à une taille pixel
+  arbitraire (réplique `SCR_DrawSmallChar` paramétrée).
+- cvar **`con_tabScale`** (défaut **1.25**, `CVAR_ARCHIVE_ND`, `Cvar_CheckRange` 1.0–3.0) : taille des
+  titres d'onglets en multiple de la police du corps. Ajustable à chaud (testé en jeu, l'utilisateur a
+  choisi 1.25). Les boîtes d'onglets s'élargissent et les glyphes se centrent verticalement.
+- Doc `docs/CVARS.md` § « tabbed console » (con_tabScale, con_tabs, con_nexttab/con_prevtab).
+
+**Saga CodeQL (leçon)** : la cvar `con_tabScale` (valeur « non contrôlée » pour CodeQL) alimentait
+l'arithmétique de layout → 5 alertes `cpp/uncontrolled-arithmetic` (high). 4 itérations de durcissement :
+(1) clamp `cw`/`chh` borne haute → 5→3 ; (2) clamp longueur titre `nlen≤32` + boucle bornée ; (3) clamp
+`cw`/`chh` **fermé [1,256]** (borne basse manquait → `cw` pouvait sembler négatif dans une multiplication).
+**Aucune n'a satisfait CodeQL** sur les produits `(nlen+2)*cw` / `(k+1)*cw` (query notoirement bruyante,
+cf. triage doc). Les valeurs étant **prouvablement bornées** (aucun overflow réel), les **3 alertes ont été
+dismissées en false-positive** (UI GitHub par l'utilisateur ; le dismiss via `gh api` a été **refusé par le
+classifier** d'auto-mode comme action de suppression de sécurité non autorisée — demander l'accord explicite).
+Consigné dans `docs/security-triage.md` § « Dismissed on PRs ». Les clamps défensifs sont **gardés** (code sain).
+
+**Reste à faire utilisateur** : `git push origin main` (ce commit context+triage) ; supprimer la branche
+remote mergée `feature/tab-title-font` (`git push origin --delete feature/tab-title-font`).
+
+---
 
 ## Session 10 : `cm360` + diagnostic écart DPI
 

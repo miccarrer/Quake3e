@@ -123,3 +123,13 @@ None are reachable from network input. Triaged incrementally; not bugs to fix en
 - A CodeQL alert appearing on a PR is triaged before merge: **fix** genuine untrusted-input
   bugs; **dismiss** clear false positives with a reason; otherwise **backlog**.
 - Dismissals carry a written rationale and are reversible (reopen if reassessed).
+
+### Dismissed on PRs (post-2026-06-15)
+
+- **PR #27** — `cpp/uncontrolled-arithmetic` ×3 (`code/client/cl_console.c`, tabbed-console
+  tab-title layout) — *false positive*. `con_tabScale` is range-checked
+  (`Cvar_CheckRange` 1.0–3.0) and the derived `cw`/`chh` pixel sizes are clamped to a closed
+  `[1,256]` range; the title length is clamped to ≤32 and the glyph loop is bounded by it, so
+  both factors of every flagged product (`(nlen+2)*cw`, `(k+1)*cw`) are provably bounded — no
+  overflow. CodeQL does not model the runtime clamps (the same noisy-query limitation noted
+  for the rule above). The defensive clamps were kept in the code regardless.
