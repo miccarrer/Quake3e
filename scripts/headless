@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+#
+# Launch an Urban Terror Optimized binary in headless mode and forward console
+# commands to it. Closes the runtime feedback loop for CI / agent-driven tests:
+# combine with the Tier-0 "assert" / "quit <code>" commands to get a process
+# exit code that reflects pass/fail.
+#
+#   scripts/headless +assert 1 == 1 +quit            # dedicated server (default)
+#   scripts/headless +exec mytest.cfg +quit
+#   URT_CLIENT=1 URT_BASEPATH=/path/to/UrT \
+#     scripts/headless +assert 1 == 1 +quit          # full client, no window
+#
+# Two modes:
+#   server (default) — dedicated-server binary; covers qcommon subsystems
+#                      (cvars, commands, filesystem, parsing). No assets needed.
+#   client (URT_CLIENT=1) — client binary with the null renderer and sound off.
+#                      By default the UI VM is skipped (cl_noUI), so the client
+#                      boots fully headless with NO game assets — covering client
+#                      subsystems (binds, client cvars, console, demo I/O).
+#                      Set URT_UI=1 to load the UI/cgame VMs instead, which needs
+#                      a real install in URT_BASEPATH.
+#
+# Environment overrides:
+#   URT_CLIENT     1 to run the client (null renderer); default 0 = dedicated
+#   URT_UI         1 to load the UI VM in client mode (needs install); default 0
+#   URT_BIN        explicit binary path (overrides mode auto-detection)
+#   URT_BASEPATH   fs_basepath  (default: tests/integration/fixtures)
+#   URT_HOMEPATH   fs_homepath  (default: a fresh temp dir, auto-removed)
+#   URT_NET        1 to keep networking on (default: 0, no sockets bound)
+
+set -euo pipefail
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+root="$(cd "$here/.." && pwd)"
+
+client="${URT_CLIENT:-0}"
+
+# Locate the binary: explicit URT_BIN, else newest artifact for the chosen mode.
+# The client binary is *.x64/*.x86 etc.; the dedicated one is *.ded.*.
+bin="${URT_BIN:-}"
+if [ -z "$bin" ]; then
+	if [ "$client" != "0" ]; then
+		bin="$(ls -t "$root"/build/release-*/* 2>/dev/null | grep -vE '\.(d|so|ded\.[^/]*)$' | grep -E '\.[a-z0-9]+$' | head -n1 || true)"
+	else
+		bin="$(ls -t "$root"/build/release-*/*.ded.* 2>/dev/null | grep -v '\.d$' | head -n1 || true)"
+	fi
+fi
+if [ -z "$bin" ] || [ ! -x "$bin" ]; then
+	echo "headless: no runnable binary found (set URT_BIN or run 'make')" >&2
+	exit 127
+fi
+
+basepath="${URT_BASEPATH:-$root/tests/integration/fixtures}"
+
+# Provide an isolated, disposable homepath unless the caller pins one.
+cleanup=""
+homepath="${URT_HOMEPATH:-}"
+if [ -z "$homepath" ]; then
+	homepath="$(mktemp -d)"
+	cleanup="$homepath"
+fi
+trap '[ -n "$cleanup" ] && rm -rf "$cleanup"' EXIT
+
+net="${URT_NET:-0}"
+
+# Dummy SDL drivers so any client-side SDL init has no real window/audio device.
+export SDL_VIDEODRIVER="${SDL_VIDEODRIVER:-dummy}"
+export SDL_AUDIODRIVER="${SDL_AUDIODRIVER:-dummy}"
+
+common=(
+	+set net_enabled "$net"
+	+set com_logTimestamps 0
+	+set fs_basepath "$basepath"
+	+set fs_homepath "$homepath"
+)
+
+if [ "$client" != "0" ]; then
+	# Headless client: null renderer (no window/context), sound + mouse off.
+	# Skip the UI VM unless URT_UI=1, so the client runs without game assets.
+	noui=1
+	[ "${URT_UI:-0}" != "0" ] && noui=0
+	"$bin" \
+		+set cl_renderer null \
+		+set cl_noUI "$noui" \
+		+set s_initsound 0 \
+		+set in_mouse 0 \
+		+set com_introPlayed 1 \
+		+set viewlog 0 \
+		"${common[@]}" \
+		"$@"
+else
+	"$bin" \
+		+set dedicated 1 \
+		"${common[@]}" \
+		"$@"
+fi

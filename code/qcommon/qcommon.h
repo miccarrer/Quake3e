@@ -514,6 +514,8 @@ void	Cmd_AddCommand( const char *cmd_name, xcommand_t function );
 void	Cmd_RemoveCommand( const char *cmd_name );
 void	Cmd_RemoveCgameCommands( void );
 
+qboolean Cmd_Exists( const char *cmd_name );
+
 typedef void (*completionFunc_t)( const char *args, int argNum );
 
 // don't allow VMs to remove system commands
@@ -1287,7 +1289,7 @@ void	Sys_Sleep( int msec );
 char	*Sys_ConsoleInput( void );
 
 void	NORETURN FORMAT_PRINTF(1, 2) QDECL Sys_Error( const char *error, ... );
-void	NORETURN Sys_Quit( void );
+void NORETURN Sys_Quit( int code );
 char	*Sys_GetClipboardData( void );	// note that this isn't journaled...
 void	Sys_SetClipboardBitmap( const byte *bitmap, int length );
 

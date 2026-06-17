@@ -49,6 +49,10 @@ USE_OPENGL_API   = 1
 USE_VULKAN_API   = 1
 USE_RENDERER_DLOPEN = 1
 
+# Build the headless null renderer module (urbanterror-optimized_null_<arch>.so),
+# selectable with "+set cl_renderer null". Only meaningful with dlopen renderers.
+USE_RENDERER_NULL ?= 1
+
 # valid options: opengl, vulkan, opengl2
 RENDERER_DEFAULT = vulkan
 
@@ -213,6 +217,7 @@ RCDIR=$(MOUNT_DIR)/renderercommon
 R1DIR=$(MOUNT_DIR)/renderer
 R2DIR=$(MOUNT_DIR)/renderer2
 RVDIR=$(MOUNT_DIR)/renderervk
+NDIR=$(MOUNT_DIR)/renderernull
 SDLDIR=$(MOUNT_DIR)/sdl
 SDLHDIR=$(MOUNT_DIR)/libsdl/include/SDL2
 
@@ -662,6 +667,7 @@ TARGET_CLIENT = $(CNAME)$(ARCHEXT)$(BINEXT)
 TARGET_REND1 = $(RENDERER_PREFIX)_opengl_$(SHLIBNAME)
 TARGET_REND2 = $(RENDERER_PREFIX)_opengl2_$(SHLIBNAME)
 TARGET_RENDV = $(RENDERER_PREFIX)_vulkan_$(SHLIBNAME)
+TARGET_RENDN = $(RENDERER_PREFIX)_null_$(SHLIBNAME)
 
 TARGET_SERVER = $(DNAME)$(ARCHEXT)$(BINEXT)
 
@@ -684,6 +690,9 @@ ifneq ($(BUILD_CLIENT),0)
     endif
     ifeq ($(USE_VULKAN),1)
       TARGETS += $(B)/$(TARGET_RENDV)
+    endif
+    ifneq ($(USE_RENDERER_NULL),0)
+      TARGETS += $(B)/$(TARGET_RENDN)
     endif
   endif
 endif
@@ -765,7 +774,19 @@ debug:
 	@$(MAKE) targets B=$(BD) CFLAGS="$(CFLAGS) $(DEBUG_CFLAGS) $(EXTRA_CFLAGS)" LDFLAGS="$(LDFLAGS) $(DEBUG_LDFLAGS) $(EXTRA_LDFLAGS)" V=$(V)
 
 release:
-	@$(MAKE) targets B=$(BR) CFLAGS="$(CFLAGS) $(RELEASE_CFLAGS) $(EXTRA_CFLAGS)" V=$(V)
+	@$(MAKE) targets B=$(BR) CFLAGS="$(CFLAGS) $(RELEASE_CFLAGS) $(EXTRA_CFLAGS)" LDFLAGS="$(LDFLAGS) $(EXTRA_LDFLAGS)" V=$(V)
+
+# Headless integration smoke test: build just the dedicated server and run the
+# assert-driven .cfg suite in tests/integration/ (no game install / pk3s needed).
+smoke:
+	@$(MAKE) release BUILD_CLIENT=0
+	@tests/integration/run.sh "$(BR)/$(TARGET_SERVER)"
+
+# Headless client smoke test: build the client + null renderer (no heavy GL/Vulkan
+# renderers) and run the client cases with the UI VM skipped. Still install-free.
+smoke-client:
+	@$(MAKE) release BUILD_SERVER=0 USE_VULKAN=0 USE_OPENGL=0 USE_OPENGL2=0
+	@tests/integration/run.sh --client "$(BR)/$(TARGET_CLIENT)"
 
 define ADD_COPY_TARGET
 TARGETS += $2
@@ -836,6 +857,7 @@ endif
 	@if [ ! -d $(B)/rend2 ];then $(MKDIR) $(B)/rend2;fi
 	@if [ ! -d $(B)/rend2/glsl ];then $(MKDIR) $(B)/rend2/glsl;fi
 	@if [ ! -d $(B)/rendv ];then $(MKDIR) $(B)/rendv;fi
+	@if [ ! -d $(B)/rendn ];then $(MKDIR) $(B)/rendn;fi
 ifneq ($(BUILD_SERVER),0)
 	@if [ ! -d $(B)/ded ];then $(MKDIR) $(B)/ded/qvm;fi
 endif
@@ -999,6 +1021,12 @@ ifneq ($(USE_RENDERER_DLOPEN), 0)
     $(B)/rendv/puff.o \
     $(B)/rendv/q_math.o
 endif
+
+# headless null renderer (dlopen module only)
+Q3RENDNOBJ = \
+  $(B)/rendn/tr_null.o \
+  $(B)/rendn/q_shared.o \
+  $(B)/rendn/q_math.o
 
 JPGOBJ = \
   $(B)/client/jpeg/jaricom.o \
@@ -1325,6 +1353,10 @@ $(B)/$(TARGET_RENDV): $(Q3RENDVOBJ)
 	$(echo_cmd) "LD $@"
 	$(Q)$(CC) -o $@ $(Q3RENDVOBJ) $(SHLIBCFLAGS) $(SHLIBLDFLAGS)
 
+$(B)/$(TARGET_RENDN): $(Q3RENDNOBJ)
+	$(echo_cmd) "LD $@"
+	$(Q)$(CC) -o $@ $(Q3RENDNOBJ) $(SHLIBCFLAGS) $(SHLIBLDFLAGS)
+
 #############################################################################
 # DEDICATED SERVER
 #############################################################################
@@ -1504,6 +1536,12 @@ $(B)/rendv/%.o: $(RCDIR)/%.c
 $(B)/rendv/%.o: $(CMDIR)/%.c
 	$(DO_REND_CC)
 
+$(B)/rendn/%.o: $(NDIR)/%.c
+	$(DO_REND_CC)
+
+$(B)/rendn/%.o: $(CMDIR)/%.c
+	$(DO_REND_CC)
+
 $(B)/client/%.o: $(UDIR)/%.c
 	$(DO_CC)
 
@@ -1578,5 +1616,5 @@ ifneq ($(strip $(D_FILES)),)
 endif
 
 .PHONY: all clean clean2 clean-debug clean-release copyfiles \
-	debug default dist distclean makedirs release \
+	debug default dist distclean makedirs release smoke smoke-client \
 	targets tools toolsclean

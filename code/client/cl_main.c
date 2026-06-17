@@ -32,6 +32,8 @@ cvar_t	*cl_motd;
 static cvar_t *cl_renderer;
 #endif
 
+static cvar_t *cl_noUI; // skip loading the UI VM (headless / no game assets)
+
 cvar_t	*rcon_client_password;
 cvar_t	*rconAddress;
 
@@ -3374,7 +3376,11 @@ void CL_StartHunkUsers( void ) {
 
 	if ( !cls.uiStarted ) {
 		cls.uiStarted = qtrue;
-		CL_InitUI();
+		// cl_noUI: run without the UI VM (headless / no game assets). uivm stays
+		// NULL, which the client already tolerates (all uses are guarded).
+		if ( !cl_noUI || !cl_noUI->integer ) {
+			CL_InitUI();
+		}
 	}
 }
 
@@ -4402,6 +4408,9 @@ static void CL_InitGLimp_Cvars( void )
 
 	cl_drawBuffer = Cvar_Get( "r_drawBuffer", "GL_BACK", CVAR_CHEAT );
 	Cvar_SetDescription( cl_drawBuffer, "Specifies buffer to draw from: GL_FRONT or GL_BACK." );
+
+	cl_noUI = Cvar_Get( "cl_noUI", "0", CVAR_INIT );
+	Cvar_SetDescription( cl_noUI, "Skip loading the UI VM (ui.qvm). Lets the client boot headless without game assets, for automated/agent-driven testing of client subsystems. The menu is unavailable while set." );
 #ifdef USE_RENDERER_DLOPEN
 #ifdef RENDERER_DEFAULT
 	cl_renderer = Cvar_Get( "cl_renderer", XSTRING( RENDERER_DEFAULT ), CVAR_ARCHIVE | CVAR_LATCH );
