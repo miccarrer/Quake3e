@@ -17,7 +17,12 @@ piloter par script → asserter via code de sortie, **sans intervention humaine*
     `assert(code==0)` hors-NDEBUG → code ≠ 0 propre seulement en build **release** (le `make` par défaut).
   - commandes `assert <a> <op> <b>` / `assert_cvar <name> <op> <value>` (ops num. `== != < <= > >=`,
     chaînes `eq`/`ne`) → impriment `ASSERT PASS`/`FAIL`, un FAIL arme le code de sortie.
+  - + `assert_cvar_flag <name> <FLAG>` (flags `CVAR_*`), `assert_command <name>` (`Cmd_Exists`),
+    `assert_file <path>` (existe dans le **chemin d'écriture** `fs_homepath/fs_gamedir` — download/démo).
   - cvar `com_logTimestamps 0` → en-tête de log sans date (golden diffable).
+- **Tier 0.5 — durcissement CI** : job `integration-asan` rejoue la suite serveur sous
+  `-fsanitize=address,undefined` (`ASAN_OPTIONS=detect_leaks=0`) → chaque test devient un check
+  mémoire/UB. La cible `release` propage désormais `EXTRA_LDFLAGS`.
 - **Tier 1 — headless + runner** :
   - `scripts/headless` : lance un binaire headless (SDL `dummy`, homepath temp isolé, `net_enabled 0`).
     Modes : **serveur** (défaut), **client** (`URT_CLIENT=1`), **client+UI réelle** (`URT_UI=1`, needs install).
