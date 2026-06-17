@@ -149,6 +149,30 @@ When `fs_downloadpath` is empty, the root is `fs_homepath` (downloads go to
 startup/restart, so a downloaded pak is found just like any other; pure-server
 validation is by checksum and is unaffected by the subfolder.
 
+## Client — sensitivity converter (`cm360`)
+
+Converts between the `sensitivity` cvar and **cm/360** — the physical distance the
+mouse travels for a full 360° in-game turn (the way most players compare aim across
+games). The math: `cm/360 = 360 × 2.54 / (m_dpi × sensitivity × m_yaw)`.
+
+| Cvar | Default | Description |
+|------|---------|-------------|
+| `m_dpi` | `800` | Your mouse DPI/CPI. Used by `cm360`; set it to your mouse's actual DPI. |
+
+| Command | Effect |
+|---------|--------|
+| `cm360` | Prints your current cm/360 (from `sensitivity`, `m_dpi`, `m_yaw`). |
+| `cm360 <value>` | Sets `sensitivity` so a 360° turn takes `<value>` cm of mouse travel. |
+
+```
++set m_dpi 800        # tell the engine your mouse DPI once
+cm360 30              # set sensitivity for 30 cm/360
+cm360                 # -> "30.00 cm/360 (sensitivity ..., m_dpi 800, m_yaw 0.022)"
+```
+
+To match another game, read its cm/360 (e.g. from its own converter) and pass it to
+`cm360` here — identical cm/360 means identical aim distance.
+
 ---
 
 *Remaining M5 features (UrT demo) are tracked in [ROADMAP.md](../ROADMAP.md).*

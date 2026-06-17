@@ -54,7 +54,7 @@ compat — les legacy ignorent ce qu'ils ne connaissent pas. Tableau en
 | **Mode log déterministe (`com_logTimestamps`)** | `[DEV/CI]` | très facile | moyen | 🆕 |
 | **Run headless + `make smoke`** | `[DEV/CI]` | moyenne | élevé | 🆕 |
 | **Introspection JSON (`cvarlist --json`, …)** | `[DEV/CI]` | facile | élevé | 🆕 |
-| Convertisseur de sensi (`cm360`, conversion cross-game) | `[ENGINE]` | très facile | élevé | 🆕 |
+| Convertisseur de sensi (`cm360`) | `[ENGINE]` | très facile | élevé | ✅ |
 | Profils de binds (export/import/hot-swap) | `[ENGINE]` | facile | élevé | 🆕 |
 | Profils de config (`cfg_profile`, hot-swap) | `[ENGINE]` | facile | élevé | 🆕 |
 | Presets graphiques (batch de cvars) | `[ENGINE]` | très facile | moyen | 🆕 |
@@ -88,12 +88,12 @@ compat — les legacy ignorent ce qu'ils ne connaissent pas. Tableau en
 > **aucune dépendance au cgame**. C'est le gisement le plus sous-exploité pour des features
 > à fort impact joueur et faible coût.
 
-### Convertisseur de sensibilité (`cm360`) — 🆕
-Commande qui calcule `sensitivity` à partir d'une distance cm/360 (+ DPI), et conversion
-depuis d'autres jeux (« je joue à X cm/360 sur CS, donne-moi l'équiv. UrT »). Pur calcul.
-- **Accroche** : `sensitivity`, `m_pitch`/`m_yaw` (`cl_input.c:988`, `1008`) ; `cl_yawspeed`.
-- **Cvars** : `m_dpi` (info) ; commandes `cm360 <cm>`, `sens_from <jeu> <valeur>`.
-- **Compat** : ✅ purement local.
+### Convertisseur de sensibilité (`cm360`) ✅ livré
+Commande `cm360` : sans arg imprime le cm/360 courant, avec `<value>` règle `sensitivity` pour ce
+cm/360. Cvar `m_dpi` (DPI souris). Formule `cm/360 = 360·2.54 / (m_dpi · sensitivity · m_yaw)`.
+Testé headless (`cases/client/cm360.cfg`). Voir `docs/CVARS.md`.
+- **Reste possible** : `sens_from <jeu> <valeur>` (conversion cross-game via table de constantes par
+  jeu) — déprioritisé (constantes débattables) ; le cm/360 suffit déjà à matcher un autre jeu.
 
 ### Profils de binds (export / import / hot-swap) — 🆕
 `bindprofile save <nom>` / `load <nom>` : sauvegarde un set complet de binds dans un fichier,
