@@ -991,9 +991,16 @@ static void Con_DrawSolidConsole( float frac ) {
 			tscale = 3.0f;
 		cw = (int)( smallchar_width * tscale );
 		chh = (int)( smallchar_height * tscale );
-		if ( cw > 256 )
+		// clamp on both sides: a closed [1,256] range lets the analyzer prove the
+		// width/position products below cannot overflow (an upper bound alone
+		// leaves cw potentially negative, which still trips the multiply check).
+		if ( cw < 1 )
+			cw = 1;
+		else if ( cw > 256 )
 			cw = 256;
-		if ( chh > 256 )
+		if ( chh < 1 )
+			chh = 1;
+		else if ( chh > 256 )
 			chh = 256;
 		th = chh + 4;
 		ty = lines; // hang the tabs just below the console panel
