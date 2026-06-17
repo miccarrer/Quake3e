@@ -1,7 +1,51 @@
 # Active Context — Urban Terror Optimized
 
 ## Dernière mise à jour
-2026-06-16 — Session 8 : test en jeu de la feature #2 → **bug `fs_gamedir` trouvé & corrigé** + affinage identity (denylist vestiges Q3). Build OK.
+2026-06-17 — Session 9 : **harnais de test runtime headless** (autonomie agent/CI). Tier 0 (assert/quit code/log déterministe) + Tier 1 (wrapper headless, runner d'intégration, null renderer, client install-free via `cl_noUI`). 8 commits sur `feature/agent-test-harness`. Build OK, suites vertes.
+
+## Session 9 : harnais de test runtime headless (autonomie agent / CI)
+
+**Branche** : `feature/agent-test-harness` (depuis `feature/fs-downloadpath`) — **8 commits, non poussés**, working tree propre.
+
+**Objectif** : fermer la boucle de feedback runtime — pouvoir build → lancer headless →
+piloter par script → asserter via code de sortie, **sans intervention humaine**.
+
+**Capacités livrées (à connaître pour les prochaines sessions)** :
+
+- **Tier 0 — moteur scriptable** (`common.c`, `unix_main.c`, `win_main.c`, `qcommon.h`) :
+  - `quit <code>` propage un vrai code de sortie (`Sys_Quit(int)`). ⚠️ `Sys_Exit` a
+    `assert(code==0)` hors-NDEBUG → code ≠ 0 propre seulement en build **release** (le `make` par défaut).
+  - commandes `assert <a> <op> <b>` / `assert_cvar <name> <op> <value>` (ops num. `== != < <= > >=`,
+    chaînes `eq`/`ne`) → impriment `ASSERT PASS`/`FAIL`, un FAIL arme le code de sortie.
+  - cvar `com_logTimestamps 0` → en-tête de log sans date (golden diffable).
+- **Tier 1 — headless + runner** :
+  - `scripts/headless` : lance un binaire headless (SDL `dummy`, homepath temp isolé, `net_enabled 0`).
+    Modes : **serveur** (défaut), **client** (`URT_CLIENT=1`), **client+UI réelle** (`URT_UI=1`, needs install).
+  - `tests/integration/` : runner `run.sh [--client]`, fixture minimal `fixtures/q3ut4/default.cfg`
+    (boote **sans pk3 ni install**), cas `cases/*.cfg` (serveur) + `cases/client/*.cfg` (client).
+  - **null renderer** `code/renderernull/tr_null.c` — module dlopen `..._null_<arch>.so`,
+    `+set cl_renderer null`, aucune fenêtre/contexte GL. Additif (zéro fichier upstream touché),
+    gardé par `USE_RENDERER_NULL` (on par défaut).
+  - `cl_noUI 1` (`cl_main.c`, `CVAR_INIT`) : saute la VM UI (`uivm` NULL déjà toléré partout) →
+    **client boote 100 % headless sans aucun asset**.
+- **Cibles & CI** : `make smoke` (serveur) + `make smoke-client` (client + null renderer, sans
+  GL/Vulkan) — tous deux **install-free**. Job CI `integration` lance les deux suites.
+
+**Comment je m'en sers (mémo)** :
+```bash
+make smoke              # asserts qcommon via serveur dédié (CI)
+make smoke-client       # asserts client (binds/cvars/console) via client headless (CI)
+scripts/headless +assert 1 == 1 +quit                      # serveur ad hoc
+URT_CLIENT=1 scripts/headless +assert_cvar cl_noUI == 1 +quit   # client install-free
+URT_CLIENT=1 URT_UI=1 URT_BASEPATH=/home/michael/Jeux/UrbanTerror43 \
+  scripts/headless ... +quit                               # client + vraies VM UI/cgame (local)
+```
+
+**Reste à faire** : push + PR éventuelle. Étoffer `cases/` au fil des features (chaque future
+feature joueur/dev arrive avec son `.cfg` d'intégration). Tier 2/3 (introspection JSON, déterminisme)
+non commencés — voir `docs/FEATURE_IDEAS.md` § Autonomie de l'agent.
+
+---
 
 ## Session 8 : correctifs issus du test en jeu (download + identity)
 

@@ -2,8 +2,17 @@
 
 ## État global du projet
 
-**Milestone actuel** : **Feature #2 — download dir + `fs_downloadpath`** (session 8, 2026-06-16).
-Branche `feature/fs-downloadpath` (non poussée). Fondations M0–M4 terminées ; M5 partiel ; M6 (release v0.2.0) publiée ; M7 terminé ; Feature #1 (identity) mergée PR #20.
+**Milestone actuel** : **Harnais de test runtime headless** (session 9, 2026-06-17), branche
+`feature/agent-test-harness` (non poussée). Précédemment : Feature #2 download dir (session 8,
+branche `feature/fs-downloadpath`). Fondations M0–M4 terminées ; M5 partiel ; M6 (release v0.2.0)
+publiée ; M7 terminé ; Feature #1 (identity) mergée PR #20.
+
+**Session 9 (2026-06-17) — autonomie agent / CI** : harnais de test runtime headless. Tier 0
+(`assert`/`assert_cvar`, `quit <code>`, `com_logTimestamps`) + Tier 1 (`scripts/headless`, runner
+`tests/integration/`, **null renderer** `code/renderernull/`, **`cl_noUI`** → client headless
+**install-free**). Cibles `make smoke` (serveur) + `make smoke-client` (client) — install-free, en CI
+(job `integration`). 8 commits. Détails dans `activeContext.md` § Session 9 ; idées de suite dans
+`docs/FEATURE_IDEAS.md` § Autonomie de l'agent.
 
 **Session 8 (2026-06-16) — test en jeu** : a révélé un bug `fs_gamedir` (le dossier `download` enregistré
 dans `FS_Startup` écrasait `fs_gamedir` → écritures dans `q3ut4/download/`). Corrigé (`6398949c`). Plus
@@ -15,6 +24,16 @@ preview `listidentities` sans `model`, doc « sauver connecté en jeu » + note 
 ---
 
 ## ✅ Terminé
+
+### Session 9 — Harnais de test runtime headless (2026-06-17) ← branche `feature/agent-test-harness`
+- [x] **Tier 0** : `assert`/`assert_cvar`, `quit <code>` (`Sys_Quit(int)`), `com_logTimestamps`
+      (`common.c`, `unix_main.c`, `win_main.c`, `qcommon.h`)
+- [x] **Tier 1** : `scripts/headless` (modes serveur/client/UI), runner `tests/integration/run.sh`
+      + fixture install-free, **null renderer** `code/renderernull/tr_null.c` (module dlopen,
+      `cl_renderer null`, `USE_RENDERER_NULL`), **`cl_noUI`** (client headless **sans asset**)
+- [x] **Cibles + CI** : `make smoke` (serveur) + `make smoke-client` (client), tous deux install-free ;
+      job CI `integration` lance les deux suites + détecte les FAIL (testé négatif)
+- [ ] **Restant** : push/PR ; étoffer `cases/` ; Tier 2/3 (introspection JSON, déterminisme) non commencés
 
 ### Analyse & Planification (2026-06-14)
 - [x] Analyse des 66 commits de `omg-urt/urbanterror-slim` vs notre projet
