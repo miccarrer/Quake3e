@@ -1005,7 +1005,12 @@ static void Con_DrawSolidConsole( float frac ) {
 			ty = cls.glconfig.vidHeight - th;
 		for ( t = 0; t < NUM_CON; t++ ) {
 			qboolean active = ( t == con_iActive );
-			tw = ( (int)strlen( con_names[t] ) + 2 ) * cw;
+			// bound the title length with a literal so the width/position
+			// products below have both factors bounded (CodeQL-clean overflow).
+			int nlen = (int)strlen( con_names[t] );
+			if ( nlen > 32 )
+				nlen = 32;
+			tw = ( nlen + 2 ) * cw;
 
 			re.SetColor( active ? bgActive : bgInactive );
 			re.DrawStretchPic( tx, ty, tw, th, 0, 0, 0, 0, cls.whiteShader );
@@ -1016,7 +1021,7 @@ static void Con_DrawSolidConsole( float frac ) {
 			re.DrawStretchPic( tx, ty + th - 2, tw, 2, 0, 0, 0, 0, cls.whiteShader ); // bottom
 
 			re.SetColor( g_color_table[ColorIndex( active ? COLOR_YELLOW : COLOR_WHITE )] );
-			for ( k = 0; con_names[t][k]; k++ )
+			for ( k = 0; k < nlen; k++ )
 				Con_DrawScaledChar( tx + ( k + 1 ) * cw, ty + tpad, cw, chh, con_names[t][k] );
 
 			tx += tw;
