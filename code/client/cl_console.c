@@ -980,13 +980,25 @@ static void Con_DrawSolidConsole( float frac ) {
 		const float *red = g_color_table[ColorIndex( COLOR_RED )];
 		// tab titles are drawn a bit larger than the body text (con_tabScale)
 		float tscale = con_tabScale->value;
-		int cw = (int)( smallchar_width * tscale );
-		int chh = (int)( smallchar_height * tscale );
-		int th = chh + 4;
-		int ty = lines; // hang the tabs just below the console panel
-		int tx = smallchar_width;
-		int tpad = ( th - chh ) / 2; // vertical centering of the title glyphs
-		int t, k, tw;
+		int cw, chh, th, ty, tx, tpad, t, k, tw;
+
+		// con_tabScale is range-checked at registration, but clamp the derived
+		// pixel sizes to explicit bounds so the tab-layout arithmetic below is
+		// provably finite (keeps CodeQL's uncontrolled-arithmetic check satisfied).
+		if ( tscale < 1.0f )
+			tscale = 1.0f;
+		else if ( tscale > 3.0f )
+			tscale = 3.0f;
+		cw = (int)( smallchar_width * tscale );
+		chh = (int)( smallchar_height * tscale );
+		if ( cw > 256 )
+			cw = 256;
+		if ( chh > 256 )
+			chh = 256;
+		th = chh + 4;
+		ty = lines; // hang the tabs just below the console panel
+		tx = smallchar_width;
+		tpad = ( th - chh ) / 2; // vertical centering of the title glyphs
 
 		// keep them on-screen when the console is fully open (frac == 1)
 		if ( ty + th > cls.glconfig.vidHeight )
