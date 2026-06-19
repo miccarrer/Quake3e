@@ -291,6 +291,10 @@ bundle nommé de cvars d'apparence, sauvegardable/partageable. Voir le plan de s
   - Format **pack partageable** : `.pk3` (assets `gfx/2d/…`) + `themes/<n>.cfg` (cvars + `remapShader`).
   - Doc : [CVARS.md](docs/CVARS.md) § « Restyling menus / HUD assets ». Test : `cases/client/theme.cfg`.
   - **Limites** : logique menus/HUD inchangée (VM UrT) ; polices VM (`R_REGISTERFONT`) non remappables.
+- **Phase 3 — `themesave` capture les remaps** ✅ implémenté, `make smoke-client` vert :
+  registre des remaps de thème (`cl_scrn.c`, dédup par source, reset sur self-remap) + `SCR_WriteThemeRemaps`
+  appelé par `themesave` → un thème exporté contient **chrome + assets** (cvars + lignes `remapShader`),
+  sans édition manuelle. Test : `cases/client/theme.cfg` (round-trip remap+cvars).
 
 ---
 

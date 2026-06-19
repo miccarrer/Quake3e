@@ -490,6 +490,64 @@ static void SCR_DrawDebugGraph( void )
 static const char *const scr_remapSafePrefixes[] = {
     "ui/", "menu/", "hud/", "gfx/2d/" };
 
+// Registry of theme shader remaps issued via the remapShader command, so
+// themesave can write them back out (the renderer itself keeps no list we can
+// read). Deduped by source name; a self-remap (reset) drops the entry.
+#define MAX_THEME_REMAPS 64
+typedef struct {
+	char oldName[MAX_QPATH];
+	char newName[MAX_QPATH];
+	char timeOffset[16];
+} themeRemap_t;
+static themeRemap_t scr_themeRemaps[MAX_THEME_REMAPS];
+static int scr_numThemeRemaps;
+
+static void SCR_RecordThemeRemap( const char *o, const char *n, const char *t ) {
+	const qboolean reset = ( Q_stricmp( o, n ) == 0 ); // remap-to-self clears it
+	int i;
+
+	for ( i = 0; i < scr_numThemeRemaps; i++ ) {
+		if ( Q_stricmp( scr_themeRemaps[i].oldName, o ) != 0 )
+			continue;
+		if ( reset ) {
+			scr_numThemeRemaps--;
+			memmove( &scr_themeRemaps[i], &scr_themeRemaps[i + 1],
+			         ( scr_numThemeRemaps - i ) * sizeof( scr_themeRemaps[0] ) );
+		} else {
+			Q_strncpyz( scr_themeRemaps[i].newName, n, sizeof( scr_themeRemaps[i].newName ) );
+			Q_strncpyz( scr_themeRemaps[i].timeOffset, t, sizeof( scr_themeRemaps[i].timeOffset ) );
+		}
+		return;
+	}
+
+	if ( reset || scr_numThemeRemaps >= MAX_THEME_REMAPS )
+		return;
+
+	Q_strncpyz( scr_themeRemaps[scr_numThemeRemaps].oldName, o, sizeof( scr_themeRemaps[0].oldName ) );
+	Q_strncpyz( scr_themeRemaps[scr_numThemeRemaps].newName, n, sizeof( scr_themeRemaps[0].newName ) );
+	Q_strncpyz( scr_themeRemaps[scr_numThemeRemaps].timeOffset, t, sizeof( scr_themeRemaps[0].timeOffset ) );
+	scr_numThemeRemaps++;
+}
+
+/*
+==================
+SCR_WriteThemeRemaps
+
+Write the active theme remaps as remapShader lines (used by themesave).
+Returns the number written.
+==================
+*/
+int SCR_WriteThemeRemaps( fileHandle_t f ) {
+	int i;
+
+	for ( i = 0; i < scr_numThemeRemaps; i++ ) {
+		FS_Printf( f, "remapShader \"%s\" \"%s\" \"%s\"" Q_NEWLINE,
+		           scr_themeRemaps[i].oldName, scr_themeRemaps[i].newName,
+		           scr_themeRemaps[i].timeOffset );
+	}
+	return scr_numThemeRemaps;
+}
+
 /*
 ==================
 SCR_RemapShader_f
@@ -532,6 +590,7 @@ static void SCR_RemapShader_f( void ) {
 	}
 
 	re.RemapShader( oldShader, newShader, offset );
+	SCR_RecordThemeRemap( oldShader, newShader, offset );
 }
 
 /*

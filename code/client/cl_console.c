@@ -577,7 +577,7 @@ themes/<name>.cfg so the look can be reused or shared.
 static void Con_ThemeSave_f( void ) {
 	char filename[MAX_OSPATH];
 	fileHandle_t f;
-	int i;
+	int i, nremaps;
 
 	if ( Cmd_Argc() != 2 ) {
 		Com_Printf( "Usage: themesave <name>\n" );
@@ -599,11 +599,13 @@ static void Con_ThemeSave_f( void ) {
 	FS_Printf( f, "// UI theme: %s" Q_NEWLINE, Cmd_Argv( 1 ) );
 	for ( i = 0; i < ARRAY_LEN( con_themeCvars ); i++ )
 		FS_Printf( f, "seta %s \"%s\"" Q_NEWLINE, con_themeCvars[i], Cvar_VariableString( con_themeCvars[i] ) );
+	// also capture active UI/2D asset remaps so the export is the complete look
+	nremaps = SCR_WriteThemeRemaps( f );
 	FS_FCloseFile( f );
 
 	Cvar_Set( "cl_theme", Cmd_Argv( 1 ) );
-	Com_Printf( "Saved theme '%s' (%i cvars) to %s\n",
-	            Cmd_Argv( 1 ), (int)ARRAY_LEN( con_themeCvars ), filename );
+	Com_Printf( "Saved theme '%s' (%i cvars, %i remaps) to %s\n",
+	            Cmd_Argv( 1 ), (int)ARRAY_LEN( con_themeCvars ), nremaps, filename );
 }
 
 /*

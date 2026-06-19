@@ -534,6 +534,7 @@ void CL_SaveConsoleHistory( void );
 void	SCR_Init( void );
 void	SCR_Done( void );
 void	SCR_UpdateScreen( void );
+int SCR_WriteThemeRemaps( fileHandle_t f ); // theme remapShader lines, for themesave
 
 void	SCR_DebugGraph( float value );
 

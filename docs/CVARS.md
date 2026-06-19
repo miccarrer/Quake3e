@@ -293,10 +293,10 @@ for texture wallhacks. Remaps are re-applied automatically on `vid_restart` (via
 
 A **shareable visual theme pack** is therefore a `.pk3` (with the replacement images under
 `gfx/2d/…`, `ui/…`) plus a `themes/<name>.cfg` that sets the chrome cvars and issues the
-`remapShader` / `con_charset` / `con_image` lines. `themesave` captures the cvars; add any
-`remapShader` lines to the `.cfg` by hand. The replacement font/menu images must exist in a
-loaded pak. (Note: in-VM *fonts* registered via the font API can't be remapped — only
-bitmap-charset shaders like `gfx/2d/bigchars`.)
+`remapShader` / `con_charset` / `con_image` lines. **`themesave` captures both the cvars and the
+active `remapShader` remaps**, so you can set up your look live and export it in one command. The
+replacement font/menu images must exist in a loaded pak. (Note: in-VM *fonts* registered via the
+font API can't be remapped — only bitmap-charset shaders like `gfx/2d/bigchars`.)
 
 ---
 

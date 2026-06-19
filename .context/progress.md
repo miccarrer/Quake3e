@@ -2,11 +2,12 @@
 
 ## État global du projet
 
-**Milestone actuel** : **Thèmes d'UI client — Phase 2** (session 15, branche `feature/ui-theme`).
-Restyle des assets 2D menus/HUD sans toucher au game VM : commande `remapShader` (allowlist UI/2D
-anti-wallhack, `cl_scrn.c`), cvars `con_charset`/`con_image` (police+fond console à chaud), ré-appli
-du thème après `vid_restart`. `make smoke-client` vert (`theme.cfg` étendu, 4/4). **Phases 1+2 à
-committer + push + PR** sur `feature/ui-theme`. Étude faisabilité menus/HUD : reprise moteur infaisable
+**Milestone actuel** : **Thèmes d'UI client — Phases 2+3** (session 15, branche `feature/ui-theme`).
+Phase 2 : restyle des assets 2D menus/HUD sans toucher au game VM — commande `remapShader` (allowlist
+UI/2D anti-wallhack, `cl_scrn.c`), cvars `con_charset`/`con_image` (police+fond console à chaud),
+ré-appli du thème après `vid_restart`. Phase 3 : `themesave` capture aussi les remaps actifs (registre
+`cl_scrn.c` + `SCR_WriteThemeRemaps`) → thème exporté complet (chrome + assets). `make smoke-client`
+vert (`theme.cfg`, 4/4). **Phases 1+2+3 à committer + push + PR** sur `feature/ui-theme`. Étude faisabilité menus/HUD : reprise moteur infaisable
 (logique = VM UrT fermées) → seul le remap d'assets est possible. Précédemment : **Thèmes Phase 1**
 (chrome console : couleurs/`con_*`, `theme`/`themesave`/`themelist`, exemples `docs/themes/`) ;
 **Lot 2 console UX** committé
