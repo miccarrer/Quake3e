@@ -2,19 +2,20 @@
 
 ## État global du projet
 
-**Milestone actuel** : **scripting cfg — Lot 1** (session 12, 2026-06-17, branche
-`feature/cfg-scripting`, en cours). `alias`/`if`/`cvarlock`/`time` ajoutés (`make smoke` vert).
+**Milestone actuel** : **scripting cfg — Lot 1 MERGÉ** (session 12, PR #28, merge `e0614bf2` dans
+`main`). `alias`/`if`/`cvarlock`/`time` ajoutés (`make smoke` vert). `main` local resynchronisé,
+branche supprimée, **working tree propre — prêt pour Lot 2** (console UX render-side).
 Précédemment : police des onglets `con_tabScale` (session 11, PR #27) ; `cm360` (session 10,
 PR #25/#26) ; harnais headless (session 9, PR #24). Fondations M0–M4 terminées ; M5 partiel ;
 M6 (release v0.2.0) publiée ; M7 terminé ; Feature #1 (identity) mergée PR #20.
 
-**Session 12 (2026-06-17) — scripting cfg (Lot 1)** : 1er des 3 lots « console + scripting `.cfg` »
-(idées `docs/FEATURE_IDEAS.md`). Ajout `alias`/`unalias`/`unaliasall` (persistés, garde
-anti-récursion), `if <cvar> <op> <value> <cmd>` (réutilise `Com_Compare`, ex-`Com_AssertCompare`
+**Session 12 (2026-06-17) — scripting cfg (Lot 1, PR #28 mergée)** : 1er des 3 lots « console +
+scripting `.cfg` » (idées `docs/FEATURE_IDEAS.md`). Ajout `alias`/`unalias`/`unaliasall` (persistés,
+garde anti-récursion), `if <cvar> <op> <value> <cmd>` (réutilise `Com_Compare`, ex-`Com_AssertCompare`
 rendu public), `cvarlock`/`cvarunlock` (flag runtime `CVAR_USER_LOCKED`), `time` (µs). Fichiers :
 `cmd.c`/`cvar.c`/`common.c`/`qcommon.h`/`q_shared.h`. Test `tests/integration/cases/scripting.cfg`
-(2/2 PASS). Build client+serveur OK. Lots 2–3 (console UX render-side) à venir. Détails §
-`activeContext.md` Session 12.
+(2/2 PASS). Build client+serveur OK. **Mergé dans `main` (`e0614bf2`)**, branche supprimée. Lots 2–3
+(console UX render-side) à venir. Détails § `activeContext.md` Session 12.
 
 **Session 11 (2026-06-17) — police des onglets** : la tabbed-console était déjà mergée (PR #19) ;
 seule la taille des titres restait. Ajout cvar `con_tabScale` (défaut 1.25, range 1.0–3.0) + helper

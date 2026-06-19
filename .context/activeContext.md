@@ -1,11 +1,11 @@
 # Active Context — Urban Terror Optimized
 
 ## Dernière mise à jour
-2026-06-17 — Session 12 : **scripting cfg — Lot 1** (branche `feature/cfg-scripting`, en cours). Premier lot d'une série de 3 visant à améliorer console + scripting `.cfg` (idées de `docs/FEATURE_IDEAS.md`). Livré : `alias`/`unalias`/`unaliasall` (séquences nommées, persistées dans `q3config.cfg`, garde anti-récursion), `if <cvar> <op> <value> <cmd>` (exec conditionnel), `cvarlock`/`cvarunlock` (verrou local runtime), `time <cmd>` (profiling µs). `make smoke` vert (nouveau cas `tests/integration/cases/scripting.cfg`). Build client+serveur OK. Lots 2–3 (console UX render-side) à venir.
+2026-06-19 — Session 12 : **scripting cfg — Lot 1 MERGÉ** (PR #28, merge `e0614bf2` dans `main` le 2026-06-17). Premier lot d'une série de 3 visant à améliorer console + scripting `.cfg` (idées de `docs/FEATURE_IDEAS.md`). Livré : `alias`/`unalias`/`unaliasall` (séquences nommées, persistées dans `q3config.cfg`, garde anti-récursion), `if <cvar> <op> <value> <cmd>` (exec conditionnel), `cvarlock`/`cvarunlock` (verrou local runtime), `time <cmd>` (profiling µs). `make smoke` vert (nouveau cas `tests/integration/cases/scripting.cfg`). Build client+serveur OK. **Branche `feature/cfg-scripting` supprimée**, `main` local resynchronisé sur `origin/main`. **Working tree propre, prêt pour un nouveau chantier.** Lots 2–3 (console UX render-side) à venir.
 
 ## Session 12 : scripting cfg — Lot 1 (`alias`, `if`, `cvarlock`, `time`)
 
-**Branche** : `feature/cfg-scripting` (depuis `main`). **Non poussée**, working tree à committer.
+**Branche** : `feature/cfg-scripting` (depuis `main`). **Mergée via PR #28** (merge `e0614bf2`), branche locale + distante supprimée.
 
 **Contexte** : l'utilisateur veut améliorer l'usage de la console et le scripting `.cfg`. Plan
 établi (3 lots séquencés, découpés par **testabilité** : Lot 1 = scripting 100 % assertable
@@ -47,8 +47,8 @@ unalias, if vrai/faux/string, cvarlock blocage→unlock, time smoke. **`make smo
 **Docs mises à jour** : `docs/CVARS.md` (§ « Cfg scripting »), `ROADMAP.md` (M8 Feature #6 +
 rattrapage #3–#5 + table d'ordre corrigée v0.2.0/M7/M8).
 
-**Reste à faire** : commit + push + PR. Puis Lot 2 (console UX : `con_height`/opacité, notify
-paramétrable) et Lot 3 (recherche scrollback, smart condump).
+**Reste à faire** : ✅ commit + push + PR #28 **mergée**. Prochain chantier : Lot 2 (console UX :
+`con_height`/opacité, notify paramétrable) puis Lot 3 (recherche scrollback, smart condump).
 
 ---
 

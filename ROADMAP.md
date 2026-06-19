@@ -244,11 +244,11 @@ Détails complets dans `.context/activeContext.md` (sessions 9–11).
 - **#5 Console à onglets + `con_tabScale`** (PR #19 / #27) — onglets All/General/Frag/Chat,
   taille des titres réglable.
 
-### Feature #6 — Scripting cfg & console (en cours, branche `feature/cfg-scripting`)
+### Feature #6 — Scripting cfg & console (Lot 1 mergé, PR #28)
 *Issu de [`docs/FEATURE_IDEAS.md`](docs/FEATURE_IDEAS.md) §« Console, configs & commandes ».
 Lot 1 d'une série de 3 (Lot 2 : console UX légère `con_height`/notify ; Lot 3 : recherche
 scrollback + smart condump). Voir le plan de session.*
-- **Lot 1 — cœur scripting cfg** ✅ implémenté, `make smoke` vert :
+- **Lot 1 — cœur scripting cfg** ✅ mergé dans `main` (PR #28, `e0614bf2`), `make smoke` vert :
   - `alias` / `unalias` / `unaliasall` — séquences de commandes nommées, persistées dans
     `q3config.cfg`, garde anti-récursion (1024 expansions/passe), refus de masquer une commande.
   - `if <cvar> <op> <value> <cmd>` — exec conditionnel ; réutilise le comparateur des asserts
