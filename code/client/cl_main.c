@@ -1848,12 +1848,8 @@ static void CL_Vid_Restart( refShutdownCode_t shutdownCode ) {
 	}
 
 	cls.startCgame = qfalse;
-
-	// the renderer reset cleared any theme shader remaps and re-registered the
-	// console assets to their defaults; re-apply the active theme so its remaps
-	// and asset overrides survive a vid_restart.
-	if ( cl_theme && cl_theme->string[0] )
-		Cbuf_AddText( va( "theme \"%s\"\n", cl_theme->string ) );
+	// note: the active theme is re-applied by CL_StartHunkUsers (called above)
+	// once the UI VM is back up, which also covers startup and connect/disconnect.
 }
 
 
@@ -3386,6 +3382,12 @@ void CL_StartHunkUsers( void ) {
 		// NULL, which the client already tolerates (all uses are guarded).
 		if ( !cl_noUI || !cl_noUI->integer ) {
 			CL_InitUI();
+			// Re-apply the active UI theme. Its remapShader remaps live in the
+			// renderer and are cleared whenever the renderer/UI restart (startup,
+			// vid_restart, connect/disconnect), so reissue them once the UI is
+			// back up — otherwise only the archived cvars (colors) would persist.
+			if ( cl_theme && cl_theme->string[0] )
+				Cbuf_AddText( va( "theme \"%s\"\n", cl_theme->string ) );
 		}
 	}
 }
