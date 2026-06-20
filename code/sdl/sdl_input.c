@@ -1149,6 +1149,18 @@ void HandleEvents( void )
 				key = IN_TranslateSDLToQ3Key( &e.key.keysym, qtrue );
 
 				if ( key == K_ENTER && keys[K_ALT].down ) {
+					// Capture current display index so fullscreen targets the
+					// monitor the window is currently on, not whatever
+					// vid_xpos/vid_ypos point to after an accidental move.
+					if ( r_monitor->integer < 0 && SDL_window != NULL )
+					{
+						int currentDisplay = SDL_GetWindowDisplayIndex( SDL_window );
+						if ( currentDisplay >= 0 )
+						{
+							Com_DPrintf( "Alt+Enter: locking r_monitor to %d\n", currentDisplay );
+							Cvar_SetIntegerValue( "r_monitor", currentDisplay );
+						}
+					}
 					Cvar_SetIntegerValue( "r_fullscreen", glw_state.isFullscreen ? 0 : 1 );
 					Cbuf_AddText( "vid_restart\n" );
 					break;
@@ -1332,6 +1344,65 @@ static void IN_Minimize( void )
 
 
 /*
+IN_MonitorList
+
+Lists all available displays/monitors with their indices, names and bounds.
+Useful for setting \r_monitor to the desired display.
+*/
+static void IN_MonitorList( void )
+{
+	int i, numDisplays;
+
+	numDisplays = SDL_GetNumVideoDisplays();
+	if ( numDisplays <= 0 )
+	{
+		Com_Printf( "No displays detected (SDL error: %s)\n", SDL_GetError() );
+		return;
+	}
+
+	Com_Printf( "%d display(s) detected:\n", numDisplays );
+
+	for ( i = 0; i < numDisplays; i++ )
+	{
+		SDL_Rect bounds;
+		const char *name = SDL_GetDisplayName( i );
+		float ddpi = 0.0f;
+
+		if ( SDL_GetDisplayBounds( i, &bounds ) != 0 )
+		{
+			Com_Printf( "  [%d] %s (bounds unknown: %s)\n", i, name ? name : "Unknown", SDL_GetError() );
+			continue;
+		}
+
+		SDL_GetDisplayDPI( i, &ddpi, NULL, NULL );
+
+		Com_Printf( "  [%d] %s  %dx%d at %d,%d", i, name ? name : "Unknown",
+			bounds.w, bounds.h, bounds.x, bounds.y );
+
+		if ( r_monitor->integer == i )
+			Com_Printf( S_COLOR_GREEN "  (current \\r_monitor)" );
+		else if ( r_monitor->integer < 0 )
+		{
+			/* show which display the window is currently on */
+			if ( SDL_window != NULL )
+			{
+				int currentDisplay = SDL_GetWindowDisplayIndex( SDL_window );
+				if ( currentDisplay == i )
+					Com_Printf( S_COLOR_CYAN "  (window is here)" );
+			}
+		}
+
+		if ( ddpi > 0.0f )
+			Com_Printf( "  %.0f DPI", ddpi );
+
+		Com_Printf( "\n" );
+	}
+
+	Com_Printf( "Use \\r_monitor <index> to force a display, or \\r_monitor -1 for auto.\n" );
+}
+
+
+/*
 ===============
 IN_Frame
 ===============
@@ -1460,6 +1531,7 @@ void IN_Init( void )
 
 	Cmd_AddCommand( "minimize", IN_Minimize );
 	Cmd_AddCommand( "in_restart", IN_Restart );
+	Cmd_AddCommand( "monitorlist", IN_MonitorList );
 
 	Com_DPrintf( "------------------------------------\n" );
 }
@@ -1484,4 +1556,5 @@ void IN_Shutdown( void )
 
 	Cmd_RemoveCommand( "minimize" );
 	Cmd_RemoveCommand( "in_restart" );
+	Cmd_RemoveCommand( "monitorlist" );
 }

@@ -18,6 +18,13 @@ a value `>= 0` is a fixed margin in pixels from the corresponding screen edge.
 | `r_windowMarginLeft`   | `-1` | Left margin (px), `-1` = auto |
 | `r_windowMarginRight`  | `-1` | Right margin (px), `-1` = auto |
 
+### Multi-monitor selection
+
+| Cvar / Command | Default | Description |
+|----------------|:-------:|-------------|
+| `r_monitor`    | `-1`    | Monitor index for fullscreen/window placement. `-1` = auto (derived from `vid_xpos`/`vid_ypos`); `0..N` forces a specific display (0 = primary). Alt+Enter auto-locks the current display. Latched (requires `vid_restart`). |
+| `monitorlist`  | —       | Console command listing all detected displays with their index, name, resolution, position and DPI. Use it to find the right `r_monitor` value. |
+
 ## Master server / browser visibility
 
 | Cvar | Scope | Description |
