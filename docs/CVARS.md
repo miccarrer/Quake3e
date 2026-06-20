@@ -296,18 +296,47 @@ remapShader gfx/2d/crosshairb mytheme/crosshair    # restyle a crosshair
 remapShader gfx/2d/bigchars   mytheme/font          # restyle the bitmap font
 ```
 
-For safety, `remapShader` only accepts **UI/2D** source names — prefixes `ui/`, `ui_`, `menu/`,
-`hud/`, `gfx/2d/`, plus a short exact-name allowlist for menu-only decorations that live outside
-those namespaces (e.g. `models/misc/circle_1`, the main-menu arc). World and player shaders
-(`textures/…`, `models/players|weapons/…`) are refused, so it cannot be used for texture wallhacks.
-Remaps are re-applied automatically on `vid_restart` (via `cl_theme`).
+For safety, `remapShader` only accepts source names in the **UI/2D namespaces** — prefixes `ui/`,
+`ui_`, `menu/`, `hud/`, `gfx/2d/`. World and player shaders (`textures/…`, `models/…`) are refused,
+so it cannot be used for texture wallhacks. Remaps re-apply automatically whenever the UI restarts
+(startup, `vid_restart`, returning to the menu after a game), via `cl_theme`.
 
-A **shareable visual theme pack** is therefore a `.pk3` (with the replacement images under
-`gfx/2d/…`, `ui/…`) plus a `themes/<name>.cfg` that sets the chrome cvars and issues the
-`remapShader` / `con_charset` / `con_image` lines. **`themesave` captures both the cvars and the
-active `remapShader` remaps**, so you can set up your look live and export it in one command. The
-replacement font/menu images must exist in a loaded pak. (Note: in-VM *fonts* registered via the
-font API can't be remapped — only bitmap-charset shaders like `gfx/2d/bigchars`.)
+`themesave` captures both the chrome **cvars** and the active **`remapShader` remaps** into
+`themes/<name>.cfg`, so you can tune your look live and export the config in one command. It does
+*not* copy image/shader files — those are shipped alongside (see below). (Note: in-VM *fonts*
+registered via the font API can't be remapped — only bitmap-charset shaders like `gfx/2d/bigchars`.)
+
+### Sharing / exporting a theme
+
+A theme is made of up to three pieces under the game dir (`q3ut4/`):
+
+| Piece | Path | When |
+|-------|------|------|
+| Config | `themes/<name>.cfg` | always — the cvars + `remapShader` lines |
+| Images | e.g. `theme/<name>/*.tga` | if it ships custom art (referenced by the shader's `map` lines) |
+| Shaders | `scripts/<name>.shader` | if it ships custom art (defines the blend/`rgbGen` for those images) |
+
+To share it as a **single file**, zip those into a **`.pk3`** (a `.pk3` *is* a zip; the engine reads
+files from inside it), keeping the same internal paths:
+
+```
+cd <gamedir>/q3ut4
+zip -r catppuccin-mocha.pk3 themes/catppuccin-mocha.cfg theme/catppuccin scripts/catppuccin.shader
+```
+
+```
+catppuccin-mocha.pk3
+├── themes/catppuccin-mocha.cfg
+├── theme/catppuccin/*.tga
+└── scripts/catppuccin.shader
+```
+
+The recipient drops `catppuccin-mocha.pk3` into their own `q3ut4/` and runs `theme catppuccin-mocha`
+— the config, images and shaders all load from the pk3, no manual file placement. A **console-only
+theme** (chrome cvars, no menu re-skin) is just the single `.cfg`, shared as-is.
+
+> The bundled example theme [`docs/themes/catppuccin-mocha.cfg`](themes/) +
+> [`docs/themes/catppuccin/`](themes/catppuccin/) shows the full layout.
 
 ---
 

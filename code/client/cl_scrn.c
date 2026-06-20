@@ -491,12 +491,6 @@ static void SCR_DrawDebugGraph( void )
 static const char *const scr_remapSafePrefixes[] = {
     "ui/", "ui_", "menu/", "hud/", "gfx/2d/" };
 
-// Specific menu-only assets that fall outside the safe prefixes but are still
-// cheat-safe (drawn only in menus). Exact-match allowlist — keep this tight; do
-// NOT add anything that can be rendered during live gameplay.
-static const char *const scr_remapSafeNames[] = {
-    "models/misc/circle_1" }; // the main-menu arc/swoosh decoration
-
 // Registry of theme shader remaps issued via the remapShader command, so
 // themesave can write them back out (the renderer itself keeps no list we can
 // read). Deduped by source name; a self-remap (reset) drops the entry.
@@ -609,16 +603,13 @@ static void SCR_RemapShader_f( void ) {
 	newShader = Cmd_Argv( 2 );
 	offset = ( Cmd_Argc() > 3 ) ? Cmd_Argv( 3 ) : "0";
 
-	// anti-cheat: only UI/2D assets (by prefix) or specific menu-only names may be remapped
+	// anti-cheat: only UI/2D asset namespaces may be remapped (wallhack vectors
+	// live under textures/ and models/, which are not in the allowlist)
 	for ( i = 0; i < ARRAY_LEN( scr_remapSafePrefixes ); i++ ) {
 		if ( !Q_stricmpn( oldShader, scr_remapSafePrefixes[i], strlen( scr_remapSafePrefixes[i] ) ) ) {
 			allowed = qtrue;
 			break;
 		}
-	}
-	for ( i = 0; !allowed && i < ARRAY_LEN( scr_remapSafeNames ); i++ ) {
-		if ( !Q_stricmp( oldShader, scr_remapSafeNames[i] ) )
-			allowed = qtrue;
 	}
 	if ( !allowed ) {
 		Com_Printf( S_COLOR_YELLOW "remapShader: '%s' is not a remappable UI/2D asset (blocked for anti-cheat).\n",
