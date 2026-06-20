@@ -1,6 +1,21 @@
-// Catppuccin theme shaders (generated). 'hidden' draws nothing so menu
-// decorations can be erased; the rest are alpha-blended widget art.
+// =============================================================================
+//  catppuccin-mocha theme — renderer shaders
+//  Deploy to <gamedir>/scripts/ . Loaded at renderer init (a vid_restart picks
+//  up edits). The theme .cfg (themes/catppuccin-mocha.cfg) remaps UrT's UI
+//  shaders onto these via the remapShader command.
+//
+//  Two techniques recur:
+//   - blendfunc blend : draw the texture with its OWN alpha, so shaped widgets
+//                       (arrows, corner, slider knob) keep transparent edges.
+//   - rgbGen identity : force the texture's colour and IGNORE the per-element
+//                       colour the UI VM passes. UrT tints backdrops/panels/tabs
+//                       per screen/state; without this they'd come out wrong.
+// =============================================================================
 
+// --- Backdrops ---------------------------------------------------------------
+
+// Draws nothing (dst*1 + src*0): used to ERASE the animated menu decoration
+// (diagonal lines + arc) for a clean flat background.
 theme/catppuccin/hidden
 {
 	nopicmip
@@ -11,6 +26,63 @@ theme/catppuccin/hidden
 	}
 }
 
+// Opaque base-colour full-screen fill. UrT tints ut_menuback per screen (bright
+// on the main menu, near-black elsewhere); rgbGen identity makes it uniform.
+theme/catppuccin/fill_base
+{
+	nopicmip
+	nomipmaps
+	{
+		map theme/catppuccin/base.tga
+		rgbGen identity
+	}
+}
+
+// Semi-transparent base panel for the in-game menus, so the game still shows
+// through behind the menu (alphaGen const = opacity; tweak 0.0–1.0).
+theme/catppuccin/panel
+{
+	nopicmip
+	nomipmaps
+	{
+		map theme/catppuccin/base.tga
+		blendfunc blend
+		rgbGen identity
+		alphaGen const 0.90
+	}
+}
+
+// --- Tabs --------------------------------------------------------------------
+// Dialog tabs / menu bands. tab = unselected (gray), tab_on = selected (blue).
+// The .tga bakes a thin fully-transparent strip on the right edge so adjacent
+// tabs show a small gap. rgbGen identity forces the colour over UrT's tint.
+theme/catppuccin/tab
+{
+	nopicmip
+	nomipmaps
+	{
+		map theme/catppuccin/tab.tga
+		blendfunc blend
+		rgbGen identity
+	}
+}
+
+theme/catppuccin/tab_on
+{
+	nopicmip
+	nomipmaps
+	{
+		map theme/catppuccin/tab_on.tga
+		blendfunc blend
+		rgbGen identity
+	}
+}
+
+// --- Widgets (alpha-blended shaped art) --------------------------------------
+// Each maps a shaped RGBA texture; blendfunc blend keeps the transparent
+// background of the shape. Colour is baked into the texture.
+
+// Panel folded corner (normal + hover)
 theme/catppuccin/angle
 {
 	nopicmip
@@ -31,6 +103,7 @@ theme/catppuccin/angle_on
 	}
 }
 
+// Scrollbar: track + thumb
 theme/catppuccin/scrollbar
 {
 	nopicmip
@@ -51,6 +124,7 @@ theme/catppuccin/scrollbar_thumb
 	}
 }
 
+// Scrollbar arrow buttons (up / down / left / right)
 theme/catppuccin/arrow_up
 {
 	nopicmip
@@ -91,6 +165,7 @@ theme/catppuccin/arrow_right
 	}
 }
 
+// Slider: track + knob
 theme/catppuccin/slider
 {
 	nopicmip
@@ -111,6 +186,7 @@ theme/catppuccin/sliderbutt
 	}
 }
 
+// Navigation arrows: back (neutral / blue hover), accept (green / lighter hover)
 theme/catppuccin/backarrow
 {
 	nopicmip
@@ -148,67 +224,5 @@ theme/catppuccin/acceptarrow_on
 	{
 		map theme/catppuccin/acceptarrow_on.tga
 		blendfunc blend
-	}
-}
-
-
-// --- Forced-color fills (rgbGen identity ignores the VM vertex tint, so these
-// override VM-coloured elements like the server-browser headers/selection). ---
-theme/catppuccin/probe
-{
-	nopicmip nomipmaps
-	{
-		map theme/catppuccin/magenta.tga
-		rgbGen identity
-	}
-}
-
-theme/catppuccin/fill_surface0
-{
-	nopicmip nomipmaps
-	{
-		map theme/catppuccin/surface0.tga
-		rgbGen identity
-	}
-}
-
-theme/catppuccin/fill_surface1
-{
-	nopicmip nomipmaps
-	{
-		map theme/catppuccin/surface1.tga
-		rgbGen identity
-	}
-}
-
-theme/catppuccin/fill_blue
-{
-	nopicmip nomipmaps
-	{
-		map theme/catppuccin/blue.tga
-		rgbGen identity
-	}
-}
-
-theme/catppuccin/fill_base
-{
-	nopicmip nomipmaps
-	{
-		map theme/catppuccin/base.tga
-		rgbGen identity
-	}
-}
-
-// Semi-transparent Catppuccin panel for in-game menus (rgbGen identity ignores
-// the VM's blue tint; alphaGen const keeps a slight see-through so the game
-// stays visible behind the menu).
-theme/catppuccin/panel
-{
-	nopicmip nomipmaps
-	{
-		map theme/catppuccin/base.tga
-		blendfunc blend
-		rgbGen identity
-		alphaGen const 0.90
 	}
 }
