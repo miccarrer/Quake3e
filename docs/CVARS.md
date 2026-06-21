@@ -22,7 +22,7 @@ a value `>= 0` is a fixed margin in pixels from the corresponding screen edge.
 
 | Cvar / Command | Default | Description |
 |----------------|:-------:|-------------|
-| `r_monitor`    | `-1`    | Monitor index for fullscreen/window placement. `-1` = auto (derived from `vid_xpos`/`vid_ypos`); `0..N` forces a specific display (0 = primary). Alt+Enter auto-locks the current display. Latched (requires `vid_restart`). |
+| `r_monitor`    | `-1`    | Monitor index for fullscreen/window placement. `-1` = auto: follows the display the window is currently on, falling back to `vid_xpos`/`vid_ypos` for the first window; `0..N` forces a specific display (0 = primary). Latched (requires `vid_restart`). |
 | `monitorlist`  | —       | Console command listing all detected displays with their index, name, resolution, position and DPI. Use it to find the right `r_monitor` value. |
 
 ## Master server / browser visibility
