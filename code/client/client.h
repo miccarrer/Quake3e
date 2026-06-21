@@ -408,6 +408,7 @@ extern	cvar_t	*cl_dlDirectory;
 #endif
 extern	cvar_t	*cl_conXOffset;
 extern	cvar_t	*cl_conColor;
+extern cvar_t *cl_theme;
 extern	cvar_t	*cl_inGameVideo;
 
 extern	cvar_t	*cl_lanForcePackets;
@@ -433,6 +434,7 @@ extern	cvar_t	*r_displayRefresh;
 extern	cvar_t	*r_fullscreen;
 extern	cvar_t	*r_mode;
 extern	cvar_t	*r_modeFullscreen;
+extern cvar_t *r_monitor;
 extern	cvar_t	*r_customwidth;
 extern	cvar_t	*r_customheight;
 extern	cvar_t	*r_customPixelAspect;
@@ -533,6 +535,7 @@ void CL_SaveConsoleHistory( void );
 void	SCR_Init( void );
 void	SCR_Done( void );
 void	SCR_UpdateScreen( void );
+int SCR_WriteThemeRemaps( fileHandle_t f ); // theme remapShader lines, for themesave
 
 void	SCR_DebugGraph( float value );
 

@@ -100,6 +100,7 @@ cvar_t *r_displayRefresh;
 cvar_t *r_fullscreen;
 cvar_t *r_mode;
 cvar_t *r_modeFullscreen;
+cvar_t *r_monitor;
 cvar_t *r_customwidth;
 cvar_t *r_customheight;
 cvar_t *r_customPixelAspect;
@@ -1848,6 +1849,8 @@ static void CL_Vid_Restart( refShutdownCode_t shutdownCode ) {
 	}
 
 	cls.startCgame = qfalse;
+	// note: the active theme is re-applied by CL_StartHunkUsers (called above)
+	// once the UI VM is back up, which also covers startup and connect/disconnect.
 }
 
 
@@ -3380,6 +3383,12 @@ void CL_StartHunkUsers( void ) {
 		// NULL, which the client already tolerates (all uses are guarded).
 		if ( !cl_noUI || !cl_noUI->integer ) {
 			CL_InitUI();
+			// Re-apply the active UI theme. Its remapShader remaps live in the
+			// renderer and are cleared whenever the renderer/UI restart (startup,
+			// vid_restart, connect/disconnect), so reissue them once the UI is
+			// back up — otherwise only the archived cvars (colors) would persist.
+			if ( cl_theme && cl_theme->string[0] )
+				Cbuf_AddText( va( "theme \"%s\"\n", cl_theme->string ) );
 		}
 	}
 }
@@ -4385,6 +4394,8 @@ static void CL_InitGLimp_Cvars( void )
 	Cvar_SetDescription( r_modeFullscreen, "Dedicated fullscreen mode, set to \"\" to use \\r_mode in all cases." );
 	r_fullscreen = Cvar_Get( "r_fullscreen", "1", CVAR_ARCHIVE | CVAR_LATCH );
 	Cvar_SetDescription( r_fullscreen, "Fullscreen mode. Set to 0 for windowed mode." );
+	r_monitor = Cvar_Get( "r_monitor", "-1", CVAR_ARCHIVE | CVAR_LATCH );
+	Cvar_SetDescription( r_monitor, "Monitor index for fullscreen/window placement.\n -1 - auto: derive from vid_xpos/vid_ypos (default)\n  0..N - force a specific display (0 = primary). Use \\monitorlist to see available displays." );
 	r_customPixelAspect = Cvar_Get( "r_customPixelAspect", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	Cvar_SetDescription( r_customPixelAspect, "Enables custom aspect of the screen, with \\r_mode -1." );
 	r_customwidth = Cvar_Get( "r_customWidth", "1600", CVAR_ARCHIVE | CVAR_LATCH );

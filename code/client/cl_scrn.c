@@ -484,6 +484,143 @@ static void SCR_DrawDebugGraph( void )
 
 //=============================================================================
 
+// remapShader is restricted to UI/2D asset namespaces so themes can restyle the
+// menus / HUD / crosshair / font without enabling texture-based cheats: wallhack
+// vectors live under textures/ and models/, which are deliberately NOT listed here.
+// "ui_" covers menu line/decoration shaders (e.g. ui_lines1/ui_lines2).
+static const char *const scr_remapSafePrefixes[] = {
+    "ui/", "ui_", "menu/", "hud/", "gfx/2d/" };
+
+// Registry of theme shader remaps issued via the remapShader command, so
+// themesave can write them back out (the renderer itself keeps no list we can
+// read). Deduped by source name; a self-remap (reset) drops the entry.
+#define MAX_THEME_REMAPS 64
+typedef struct {
+	char oldName[MAX_QPATH];
+	char newName[MAX_QPATH];
+	char timeOffset[16];
+} themeRemap_t;
+static themeRemap_t scr_themeRemaps[MAX_THEME_REMAPS];
+static int scr_numThemeRemaps;
+
+static void SCR_RecordThemeRemap( const char *o, const char *n, const char *t ) {
+	const qboolean reset = ( Q_stricmp( o, n ) == 0 ); // remap-to-self clears it
+	int i;
+
+	for ( i = 0; i < scr_numThemeRemaps; i++ ) {
+		if ( Q_stricmp( scr_themeRemaps[i].oldName, o ) != 0 )
+			continue;
+		if ( reset ) {
+			scr_numThemeRemaps--;
+			memmove( &scr_themeRemaps[i], &scr_themeRemaps[i + 1],
+			         ( scr_numThemeRemaps - i ) * sizeof( scr_themeRemaps[0] ) );
+		} else {
+			Q_strncpyz( scr_themeRemaps[i].newName, n, sizeof( scr_themeRemaps[i].newName ) );
+			Q_strncpyz( scr_themeRemaps[i].timeOffset, t, sizeof( scr_themeRemaps[i].timeOffset ) );
+		}
+		return;
+	}
+
+	if ( reset || scr_numThemeRemaps >= MAX_THEME_REMAPS )
+		return;
+
+	Q_strncpyz( scr_themeRemaps[scr_numThemeRemaps].oldName, o, sizeof( scr_themeRemaps[0].oldName ) );
+	Q_strncpyz( scr_themeRemaps[scr_numThemeRemaps].newName, n, sizeof( scr_themeRemaps[0].newName ) );
+	Q_strncpyz( scr_themeRemaps[scr_numThemeRemaps].timeOffset, t, sizeof( scr_themeRemaps[0].timeOffset ) );
+	scr_numThemeRemaps++;
+}
+
+/*
+==================
+SCR_WriteThemeRemaps
+
+Write the active theme remaps as remapShader lines (used by themesave).
+Returns the number written.
+==================
+*/
+int SCR_WriteThemeRemaps( fileHandle_t f ) {
+	int i;
+
+	for ( i = 0; i < scr_numThemeRemaps; i++ ) {
+		FS_Printf( f, "remapShader \"%s\" \"%s\" \"%s\"" Q_NEWLINE,
+		           scr_themeRemaps[i].oldName, scr_themeRemaps[i].newName,
+		           scr_themeRemaps[i].timeOffset );
+	}
+	return scr_numThemeRemaps;
+}
+
+/*
+==================
+SCR_RemapList_f
+
+remaplist — print the active shader remaps issued via remapShader (theme state),
+to confirm what a theme applied and spot failed remaps.
+==================
+*/
+static void SCR_RemapList_f( void ) {
+	int i;
+
+	if ( scr_numThemeRemaps == 0 ) {
+		Com_Printf( "No active shader remaps.\n" );
+		return;
+	}
+
+	Com_Printf( "Active shader remaps (%i):\n", scr_numThemeRemaps );
+	for ( i = 0; i < scr_numThemeRemaps; i++ ) {
+		Com_Printf( "  %s " S_COLOR_CYAN "->" S_COLOR_WHITE " %s%s\n",
+		            scr_themeRemaps[i].oldName, scr_themeRemaps[i].newName,
+		            ( scr_themeRemaps[i].timeOffset[0] && strcmp( scr_themeRemaps[i].timeOffset, "0" ) != 0 )
+		                ? va( " (t=%s)", scr_themeRemaps[i].timeOffset )
+		                : "" );
+	}
+}
+
+/*
+==================
+SCR_RemapShader_f
+
+remapShader <old> <new> [timeOffset] — replace a UI/2D shader/image with another,
+letting themes restyle the menus and 2D HUD without touching the game VM. The old
+name must be in a safe UI/2D namespace (see scr_remapSafePrefixes).
+==================
+*/
+static void SCR_RemapShader_f( void ) {
+	const char *oldShader, *newShader, *offset;
+	int i;
+	qboolean allowed = qfalse;
+
+	if ( Cmd_Argc() < 3 ) {
+		Com_Printf( "Usage: remapShader <old> <new> [timeOffset]\n" );
+		return;
+	}
+
+	if ( !cls.rendererStarted ) {
+		Com_Printf( S_COLOR_YELLOW "remapShader: renderer not started.\n" );
+		return;
+	}
+
+	oldShader = Cmd_Argv( 1 );
+	newShader = Cmd_Argv( 2 );
+	offset = ( Cmd_Argc() > 3 ) ? Cmd_Argv( 3 ) : "0";
+
+	// anti-cheat: only UI/2D asset namespaces may be remapped (wallhack vectors
+	// live under textures/ and models/, which are not in the allowlist)
+	for ( i = 0; i < ARRAY_LEN( scr_remapSafePrefixes ); i++ ) {
+		if ( !Q_stricmpn( oldShader, scr_remapSafePrefixes[i], strlen( scr_remapSafePrefixes[i] ) ) ) {
+			allowed = qtrue;
+			break;
+		}
+	}
+	if ( !allowed ) {
+		Com_Printf( S_COLOR_YELLOW "remapShader: '%s' is not a remappable UI/2D asset (blocked for anti-cheat).\n",
+		            oldShader );
+		return;
+	}
+
+	re.RemapShader( oldShader, newShader, offset );
+	SCR_RecordThemeRemap( oldShader, newShader, offset );
+}
+
 /*
 ==================
 SCR_Init
@@ -495,6 +632,9 @@ void SCR_Init( void ) {
 	cl_graphheight = Cvar_Get ("graphheight", "32", CVAR_CHEAT);
 	cl_graphscale = Cvar_Get ("graphscale", "1", CVAR_CHEAT);
 	cl_graphshift = Cvar_Get ("graphshift", "0", CVAR_CHEAT);
+
+	Cmd_AddCommand( "remapShader", SCR_RemapShader_f );
+	Cmd_AddCommand( "remaplist", SCR_RemapList_f );
 
 	scr_initialized = qtrue;
 }

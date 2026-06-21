@@ -268,6 +268,34 @@ scrollback + smart condump). Voir le plan de session.*
     Doc : [CVARS.md](docs/CVARS.md) § « console appearance & notify ».
 - **Lot 3** : à venir (recherche scrollback + smart condump + `con_notifyFilter`).
 
+### Feature #7 — Thèmes d'UI client (chrome console), partageables
+*Le moteur ne dessine que le chrome console (menus/HUD = game VM, hors périmètre). Un thème =
+bundle nommé de cvars d'apparence, sauvegardable/partageable. Voir le plan de session.*
+- **Phase 1 — couleurs + mise en page + commande `theme`** ✅ implémenté, `make smoke-client` vert :
+  - Couleurs du chrome exposées en cvars (`R G B A`) : `con_tabColor`, `con_tabColorInactive`,
+    `con_accentColor`, `con_titleColor`, `con_titleColorInactive` + `con_separatorHeight` ; helper
+    `Con_ParseColor` factorisé depuis le parseur `cl_conColor`.
+  - Commandes `theme` / `themesave` / `themelist` + complétion + cvar `cl_theme`, calquées sur le
+    système d'identités (`themes/<name>.cfg`, `Cbuf_InsertText`). Partage = envoi du `.cfg`.
+  - Thèmes d'exemple : [`docs/themes/`](docs/themes/) (`dark`/`light`/`classic`).
+  - **Fichier** : `cl_console.c`. Test : `tests/integration/cases/client/theme.cfg`. Doc :
+    [CVARS.md](docs/CVARS.md) § « UI themes ».
+- **Phase 2 — assets : remap shader + police/fond console** ✅ implémenté, `make smoke-client` vert :
+  - Commande **`remapShader <old> <new>`** (`cl_scrn.c`) → `re.RemapShader`, **gardée par allowlist
+    UI/2D** (`ui/`/`menu/`/`hud/`/`gfx/2d/`) pour bloquer les remaps gameplay (wallhack). Permet de
+    restyler menus/HUD/crosshair sans toucher au game VM.
+  - `con_charset` / `con_image` (`cl_console.c`) — police + fond de console ré-enregistrés à chaud
+    (`re.RegisterShader` par frame, caché). Ajoutés à `con_themeCvars[]`.
+  - Ré-application du thème après `vid_restart` (`CL_Vid_Restart`, `cl_main.c`) via `cl_theme` —
+    les remaps survivent au reset renderer.
+  - Format **pack partageable** : `.pk3` (assets `gfx/2d/…`) + `themes/<n>.cfg` (cvars + `remapShader`).
+  - Doc : [CVARS.md](docs/CVARS.md) § « Restyling menus / HUD assets ». Test : `cases/client/theme.cfg`.
+  - **Limites** : logique menus/HUD inchangée (VM UrT) ; polices VM (`R_REGISTERFONT`) non remappables.
+- **Phase 3 — `themesave` capture les remaps** ✅ implémenté, `make smoke-client` vert :
+  registre des remaps de thème (`cl_scrn.c`, dédup par source, reset sur self-remap) + `SCR_WriteThemeRemaps`
+  appelé par `themesave` → un thème exporté contient **chrome + assets** (cvars + lignes `remapShader`),
+  sans édition manuelle. Test : `cases/client/theme.cfg` (round-trip remap+cvars).
+
 ---
 
 ## 📋 Ordre d'exécution

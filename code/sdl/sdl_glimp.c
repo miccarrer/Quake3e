@@ -200,7 +200,7 @@ static int GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen, qbool
 	int colorBits, depthBits, stencilBits;
 	int i;
 	SDL_DisplayMode desktopMode;
-	int display;
+	int display = -1;
 	int x;
 	int y;
 	// Window margin system temporary variables
@@ -219,17 +219,28 @@ static int GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen, qbool
 		Com_Printf( "Initializing OpenGL display\n");
 	}
 
-	// If a window exists, note its display index
+	// Resolve the target display, in priority order:
+	//   1. r_monitor, if explicitly set and valid (honored on init AND restart)
+	//   2. the display the current window is on (restart)
+	//   3. auto-detect from the stored vid_xpos/vid_ypos (first window)
 	if ( SDL_window != NULL )
 	{
 		display = SDL_GetWindowDisplayIndex( SDL_window );
 		if ( display < 0 )
-		{
 			Com_DPrintf( "SDL_GetWindowDisplayIndex() failed: %s\n", SDL_GetError() );
-		}
 	}
-	else
-	{
+
+	if ( r_monitor->integer >= 0 ) {
+		const int numDisplays = SDL_GetNumVideoDisplays();
+		glw_state.monitorCount = numDisplays;
+		if ( r_monitor->integer < numDisplays )
+			display = r_monitor->integer;
+		else
+			Com_Printf( S_COLOR_YELLOW "WARNING: r_monitor %d is out of range (only %d displays)\n",
+			            r_monitor->integer, numDisplays );
+	}
+
+	if ( SDL_window == NULL ) {
 		// Window margin system (CSS-like)
 		// -1 = auto (center), >=0 = fixed margin in pixels
 		// If all margins are 0, fall back to vid_xpos/vid_ypos (backward compatible)
@@ -242,9 +253,17 @@ static int GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen, qbool
 		x = vid_xpos->integer;
 		y = vid_ypos->integer;
 
-		// find out to which display our window belongs to
-		// according to previously stored \vid_xpos and \vid_ypos coordinates
-		display = FindNearestDisplay( &x, &y, 640, 480 );
+		if ( display < 0 ) {
+			// no r_monitor override and no existing window: pick the display
+			// from the previously stored vid_xpos/vid_ypos coordinates
+			display = FindNearestDisplay( &x, &y, 640, 480 );
+		} else {
+			// r_monitor forced a display: center the window on it so it can't be
+			// born off-screen when vid_xpos/vid_ypos point to another monitor
+			// (the margin system below overrides this when margins are set)
+			x = SDL_WINDOWPOS_CENTERED_DISPLAY( display );
+			y = SDL_WINDOWPOS_CENTERED_DISPLAY( display );
+		}
 
 		// Apply margin system if any margin is non-zero
 		if ( useMargins && display >= 0 )

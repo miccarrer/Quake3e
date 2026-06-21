@@ -18,6 +18,13 @@ a value `>= 0` is a fixed margin in pixels from the corresponding screen edge.
 | `r_windowMarginLeft`   | `-1` | Left margin (px), `-1` = auto |
 | `r_windowMarginRight`  | `-1` | Right margin (px), `-1` = auto |
 
+### Multi-monitor selection
+
+| Cvar / Command | Default | Description |
+|----------------|:-------:|-------------|
+| `r_monitor`    | `-1`    | Monitor index for fullscreen/window placement. `-1` = auto: follows the display the window is currently on, falling back to `vid_xpos`/`vid_ypos` for the first window; `0..N` forces a specific display (0 = primary). Latched (requires `vid_restart`). |
+| `monitorlist`  | —       | Console command listing all detected displays with their index, name, resolution, position and DPI. Use it to find the right `r_monitor` value. |
+
 ## Master server / browser visibility
 
 | Cvar | Scope | Description |
@@ -226,13 +233,116 @@ shown over the game when the console is closed) are configurable. `con_notifytim
 | `con_notifyY` | `0` | Vertical offset of the notify area, in pixels from the top of the screen. Range `0`–`600`. |
 | `con_notifytime` | `3` | How long a notify message stays on screen, in seconds. |
 | `cl_conColor` | `51 51 61 255` | Console background color as `R G B A` (0–255). Default matches the active console tab; empty = default background image. Final opacity is scaled by `con_opacity` (so the default look is the tab color at 80% opacity). |
+| `r_consoleBlur` | `0` | Frosted-glass blur of the game **behind** the open console. `0` = off; `1`–`4` = blur strength. **Vulkan renderer only** (requires `r_fbo 1`; no-op on OpenGL). Latched — takes effect after `vid_restart`. Combine with a low `con_opacity` so the blurred scene shows through the panel. |
 
 ```
 \con_height 0.7        # console drops to 70% of the screen
 \con_opacity 0.4       # semi-transparent background
 \con_notifyLines 6     # show up to 6 notify lines
 \con_notifyY 80        # push the notify area 80px down
+\r_consoleBlur 2       # blur the game behind the console (Vulkan; needs vid_restart)
 ```
+
+> **Frosted glass:** `r_consoleBlur` is a renderer post-process, not a theme cvar, so it is
+> *not* saved by `themesave`. It lives in your video config and is shared across themes.
+> For the strongest effect pair it with a translucent panel, e.g. `con_opacity 0.5`.
+
+---
+
+## Client — UI themes (console chrome)
+
+A **theme** is a named bundle of console-appearance cvars (colors + layout) that can be
+saved, switched and shared. It applies to the **engine-drawn console chrome** — the only UI
+the engine itself draws. (Menus and the in-game HUD are drawn by the game module and are
+customized through the usual UrT pk3 mechanism, not by these cvars.)
+
+The chrome colors below are all `R G B A`, components 0–255 (a missing alpha defaults to
+opaque). Each is faded by `con_opacity` along with the rest of the chrome; tab title text
+stays opaque.
+
+| Cvar | Default | Description |
+|------|:-------:|-------------|
+| `con_tabColor` | `51 51 61 255` | Active tab background. |
+| `con_tabColorInactive` | `18 18 23 255` | Inactive tab background. |
+| `con_accentColor` | `255 0 0 255` | Panel separator + tab borders. |
+| `con_titleColor` | `255 255 0 255` | Active tab title text. |
+| `con_titleColorInactive` | `255 255 255 255` | Inactive tab title text. |
+| `con_textColor` | `255 255 255 255` | Default console text (uncolored output + input prompt). Explicit `^`-color codes are kept, so a light theme can darken body text without losing chat colors. |
+| `con_separatorHeight` | `2` | Panel separator thickness in pixels. Range `1`–`8`. |
+| `con_charset` | `gfx/2d/bigchars` | Shader/image for the console **font** (themable). |
+| `con_image` | `console` | Shader/image for the console **background** (used when `cl_conColor` is empty). |
+| `cl_theme` | *(empty)* | Name of the active theme (set by the `theme` command). |
+
+| Command | Effect |
+|---------|--------|
+| `theme <name>` | Apply `themes/<name>.cfg` (and set `cl_theme`). Re-applied automatically after `vid_restart`. |
+| `themesave <name>` | Write the current chrome + layout cvars to `themes/<name>.cfg`. |
+| `themelist` | List the available themes under `themes/`. |
+| `remapShader <old> <new> [t]` | Replace a **UI/2D** shader/image with another (see below). |
+
+A theme is just a `.cfg` file under `<gamedir>/themes/` — **share it by sending the file**; the
+recipient drops it into their `themes/` and runs `theme <name>`. Example themes ship in
+[`docs/themes/`](themes/) (`dark` = default, `light`, `classic`, `catppuccin-mocha`). The
+`catppuccin-mocha` theme also remaps the main-menu background (`ui/assets/ut_menuback`) to a
+bundled solid base image (`docs/themes/catppuccin/base.tga`, deploy to `<gamedir>/theme/catppuccin/`).
+
+```
+\themesave mylook      # capture the current console look as themes/mylook.cfg
+\theme classic         # switch to the classic Quake 3 look
+\themelist             # see what is installed
+```
+
+### Restyling menus / HUD assets (`remapShader`)
+
+The engine doesn't draw the menus, HUD or scoreboard (the game module does), so a theme can't
+change their *layout*. It can, however, **swap the 2D images they draw** with `remapShader`:
+
+```
+remapShader gfx/2d/crosshairb mytheme/crosshair    # restyle a crosshair
+remapShader gfx/2d/bigchars   mytheme/font          # restyle the bitmap font
+```
+
+For safety, `remapShader` only accepts source names in the **UI/2D namespaces** — prefixes `ui/`,
+`ui_`, `menu/`, `hud/`, `gfx/2d/`. World and player shaders (`textures/…`, `models/…`) are refused,
+so it cannot be used for texture wallhacks. Remaps re-apply automatically whenever the UI restarts
+(startup, `vid_restart`, returning to the menu after a game), via `cl_theme`.
+
+`themesave` captures both the chrome **cvars** and the active **`remapShader` remaps** into
+`themes/<name>.cfg`, so you can tune your look live and export the config in one command. It does
+*not* copy image/shader files — those are shipped alongside (see below). (Note: in-VM *fonts*
+registered via the font API can't be remapped — only bitmap-charset shaders like `gfx/2d/bigchars`.)
+
+### Sharing / exporting a theme
+
+A theme is made of up to three pieces under the game dir (`q3ut4/`):
+
+| Piece | Path | When |
+|-------|------|------|
+| Config | `themes/<name>.cfg` | always — the cvars + `remapShader` lines |
+| Images | e.g. `theme/<name>/*.tga` | if it ships custom art (referenced by the shader's `map` lines) |
+| Shaders | `scripts/<name>.shader` | if it ships custom art (defines the blend/`rgbGen` for those images) |
+
+To share it as a **single file**, zip those into a **`.pk3`** (a `.pk3` *is* a zip; the engine reads
+files from inside it), keeping the same internal paths:
+
+```
+cd <gamedir>/q3ut4
+zip -r catppuccin-mocha.pk3 themes/catppuccin-mocha.cfg theme/catppuccin scripts/catppuccin.shader
+```
+
+```
+catppuccin-mocha.pk3
+├── themes/catppuccin-mocha.cfg
+├── theme/catppuccin/*.tga
+└── scripts/catppuccin.shader
+```
+
+The recipient drops `catppuccin-mocha.pk3` into their own `q3ut4/` and runs `theme catppuccin-mocha`
+— the config, images and shaders all load from the pk3, no manual file placement. A **console-only
+theme** (chrome cvars, no menu re-skin) is just the single `.cfg`, shared as-is.
+
+> The bundled example theme [`docs/themes/catppuccin-mocha.cfg`](themes/) +
+> [`docs/themes/catppuccin/`](themes/catppuccin/) shows the full layout.
 
 ---
 
